@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gabimaps/presentation/screens/notifications/error_screen.dart';
 import 'services/firebase_service.dart';
 import 'presentation/screens/splash_screen.dart';
+import 'config/app_routes.dart';
+import 'config/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +22,20 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Material App',
-      home: const SplashScreen(),
+      initialRoute: AppRoutes.splash,
+      onGenerateRoute: (settings) {
+        if (AppRoutes.routes.containsKey(settings.name)) {
+          return MaterialPageRoute(builder: AppRoutes.routes[settings.name]!);
+        } else {
+          return MaterialPageRoute(builder: (context) => ErrorScreen());
+        }
+      },
+
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode:
+          ThemeMode
+              .system, // Cambia entre light y dark según la configuración del sistema
     );
   }
 }
