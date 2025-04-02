@@ -8,7 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AgregarUbicacionScreen extends ConsumerStatefulWidget {
-  const AgregarUbicacionScreen({Key? key}) : super(key: key);
+  const AgregarUbicacionScreen({super.key});
 
   @override
   _AgregarUbicacionScreenState createState() => _AgregarUbicacionScreenState();

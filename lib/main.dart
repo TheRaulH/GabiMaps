@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/presentation/screens/notifications/error_screen.dart';
 import 'services/firebase_service.dart';
-import 'presentation/screens/splash_screen.dart';
 import 'config/app_routes.dart';
 import 'config/theme.dart';
 
