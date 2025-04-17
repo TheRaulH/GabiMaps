@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gabimaps/presentation/screens/layout/main_app.dart'
+    show MainApp;
 import '../../providers/auth_provider.dart';
-import '../home/home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends ConsumerWidget {
@@ -37,7 +38,7 @@ class LoginScreen extends ConsumerWidget {
                   // ✅ Verifica si el contexto sigue montado antes de navegar
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    MaterialPageRoute(builder: (context) => const MainApp()),
                   );
                 }
               },
@@ -50,7 +51,7 @@ class LoginScreen extends ConsumerWidget {
                   // ✅ Verifica si el contexto sigue montado antes de navegar
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    MaterialPageRoute(builder: (context) => const MainApp()),
                   );
                 }
               },

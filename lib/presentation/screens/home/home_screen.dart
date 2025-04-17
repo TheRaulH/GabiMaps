@@ -6,6 +6,12 @@ import '../../providers/auth_provider.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  //funcion logout que hace logout y navega a login
+  void _logout(BuildContext context, WidgetRef ref) {
+    ref.read(authProvider.notifier).logout();
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider);
@@ -15,7 +21,11 @@ class HomeScreen extends ConsumerWidget {
         title: const Text('Home Screen'),
         actions: [
           IconButton(
-            onPressed: () => ref.read(authProvider.notifier).logout(),
+            //navegar a login luego de hacer logout
+            onPressed: () => _logout(context, ref),
+            tooltip: 'Cerrar sesión',
+            // Cambia el icono a uno que represente cerrar sesión        
+
             icon: const Icon(Icons.logout),
           ),
         ],

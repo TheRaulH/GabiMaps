@@ -35,11 +35,18 @@ class RegisterScreen extends ConsumerWidget {
                   emailController.text,
                   passwordController.text,
                 );
-                if (context.mounted) {
-                  // ✅ Verifica que el contexto siga montado antes de navegar
+
+                if (auth.state != null && context.mounted) {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                } else {
+                  // Opcional: Mostrar un mensaje de error si el registro falló
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al registrar el usuario.'),
+                    ),
                   );
                 }
               },

@@ -1,15 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import '../config/firebase_options.dart';
 
-class FirebaseService {
+class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  static Future<void> initialize() async {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
   Future<Map<String, dynamic>?> getDocument(
     String collection,
     String documentId,

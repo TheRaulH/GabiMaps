@@ -29,7 +29,19 @@ class MyApp extends StatelessWidget {
         }
       },
 
-      theme: lightTheme,
+      //habilitar material 3
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
+        brightness: Brightness.light,
+      ),
+      highContrastDarkTheme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
+        brightness: Brightness.dark,
+      ),
+    
+
       darkTheme: darkTheme,
       themeMode:
           ThemeMode
