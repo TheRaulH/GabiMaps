@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:gabimaps/data/models/user_model.dart';
 import 'package:gabimaps/services/firestore_service.dart';
 import '../../services/auth_service.dart';
@@ -39,7 +39,7 @@ class AuthNotifier extends StateNotifier<User?> {
         final newUser = UserModel(
           uid: firebaseUser.uid,
           email: email,
-          rol: 'usuario',
+          rol: 'user',
           //nombre sera el nombre de usuario que se obtiene del email
           nombre: quitarArroba(email),
         );
@@ -86,7 +86,7 @@ class AuthNotifier extends StateNotifier<User?> {
           final newUser = UserModel(
             uid: firebaseUser.uid,
             email: firebaseUser.email!,
-            rol: 'usuario',
+            rol: 'user',
             nombre: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL,
           );
@@ -115,6 +115,8 @@ class AuthNotifier extends StateNotifier<User?> {
       return;
     }
   }
+
+   
 
   // 🔹 Logout
   Future<void> logout() async {

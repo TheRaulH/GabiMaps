@@ -1,49 +1,146 @@
+// user_provider.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gabimaps/domain/entities/user.dart';
-import 'package:gabimaps/domain/usecases/user_usecases.dart';
-import 'package:gabimaps/domain/repositories/user_repository.dart';
-import 'package:gabimaps/data/repositories/user_repository_impl.dart';
-import 'package:gabimaps/services/firestore_service.dart'; // Importa FirestoreService
+import 'package:gabimaps/data/models/user_model.dart';
 
-// Proporciona FirestoreService
-final firestoreServiceProvider = Provider<FirestoreService>(
-  (ref) => FirestoreService(),
-);
+// Estados del provider
+abstract class UserState {}
 
-// Proporciona UserRepository
-final userRepositoryProvider = Provider<UserRepository>(
-  (ref) => UserRepositoryImpl(ref.read(firestoreServiceProvider)),
-);
+class UserInitial extends UserState {}
 
-// Proporciona GetUser usecase
-final getUserProvider = Provider<GetUser>(
-  (ref) => GetUser(ref.read(userRepositoryProvider)),
-);
+class UserLoading extends UserState {}
 
-// Proporciona SaveUser usecase
-final saveUserProvider = Provider<SaveUser>(
-  (ref) => SaveUser(ref.read(userRepositoryProvider)),
-);
+class UserLoaded extends UserState {
+  final UserModel user;
+  UserLoaded(this.user);
+}
 
-// Proporciona UserNotifier
-final userProvider = StateNotifierProvider<UserNotifier, User?>((ref) {
-  final getUser = ref.read(getUserProvider);
-  final saveUser = ref.read(saveUserProvider);
-  return UserNotifier(getUser, saveUser);
-});
+class UserError extends UserState {
+  final String message;
+  UserError(this.message);
+}
 
-class UserNotifier extends StateNotifier<User?> {
-  final GetUser _getUser;
-  final SaveUser _saveUser;
+// Notifier
+class UserNotifier extends StateNotifier<UserState> {
+  final FirebaseFirestore _firestore;
+  final auth.FirebaseAuth _auth;
 
-  UserNotifier(this._getUser, this._saveUser) : super(null);
-
-  Future<void> fetchUser(String uid) async {
-    state = await _getUser.execute(uid);
+  UserNotifier({
+    required FirebaseFirestore firestore,
+    required auth.FirebaseAuth auth,
+  }) : _firestore = firestore,
+       _auth = auth,
+       super(UserInitial()) {
+    loadUser();
   }
 
-  Future<void> updateUser(User user) async {
-    await _saveUser.execute(user);
-    state = user;
+  Future<void> loadUser() async {
+    state = UserLoading();
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        state = UserError('No hay usuario autenticado');
+        return;
+      }
+
+      final userData =
+          await _firestore.collection('users').doc(currentUser.uid).get();
+
+      if (userData.exists) {
+        final user = UserModel.fromFirestore(
+          userData.data() as Map<String, dynamic>,
+          currentUser.uid,
+        );
+        state = UserLoaded(user);
+      } else {
+        // Crear un usuario básico si no existe en Firestore
+        final newUser = UserModel(
+          uid: currentUser.uid,
+          email: currentUser.email ?? '',
+          rol: 'usuario',
+          fechaRegistro: DateTime.now(),
+          photoURL: currentUser.photoURL,
+        );
+
+        await _saveUserToFirestore(newUser);
+        state = UserLoaded(newUser);
+      }
+    } catch (e) {
+      state = UserError('Error al cargar el usuario: $e');
+    }
+  }
+
+  Future<void> updateUser(UserModel user) async {
+    try {
+      final previousState = state;
+      state = UserLoading();
+
+      await _saveUserToFirestore(user);
+      state = UserLoaded(user);
+    } catch (e) {
+      state = UserError('Error al actualizar el usuario: $e');
+    }
+  }
+
+  Future<void> _saveUserToFirestore(UserModel user) async {
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .set(user.toFirestore(), SetOptions(merge: true));
+  }
+}
+
+// Provider de Firebase
+final firebaseFirestoreProvider = Provider<FirebaseFirestore>((ref) {
+  return FirebaseFirestore.instance;
+});
+
+final firebaseAuthProvider = Provider<auth.FirebaseAuth>((ref) {
+  return auth.FirebaseAuth.instance;
+});
+
+// Provider principal
+final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
+  return UserNotifier(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
+});
+
+final userListProvider =
+    StateNotifierProvider<UserListNotifier, List<UserModel>>((ref) {
+      return UserListNotifier(ref);
+    });
+
+class UserListNotifier extends StateNotifier<List<UserModel>> {
+  final Ref ref;
+
+  UserListNotifier(this.ref) : super([]) {
+    loadUsers();
+  }
+
+  Future<void> loadUsers() async {
+    final firestore = ref.read(firebaseFirestoreProvider);
+    final snapshot = await firestore.collection('users').get();
+    state =
+        snapshot.docs
+            .map((doc) => UserModel.fromFirestore(doc.data(), doc.id))
+            .toList();
+  }
+
+  Future<void> deleteUser(String uid) async {
+    final firestore = ref.read(firebaseFirestoreProvider);
+    await firestore.collection('users').doc(uid).delete();
+    state = state.where((user) => user.uid != uid).toList();
+  }
+
+  Future<void> updateUser(UserModel user) async {
+    final firestore = ref.read(firebaseFirestoreProvider);
+    await firestore
+        .collection('users')
+        .doc(user.uid)
+        .set(user.toFirestore(), SetOptions(merge: true));
+    await loadUsers();
   }
 }
