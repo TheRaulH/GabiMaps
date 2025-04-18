@@ -49,10 +49,7 @@ class HomeScreen extends ConsumerWidget {
               ],
             ],
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/addLocation'),
-              child: const Text('Agregar Ubicación'),
-            ),
+             
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, '/locationDetails'),
