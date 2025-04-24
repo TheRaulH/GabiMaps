@@ -12,11 +12,13 @@ class Location {
   final int? reviewCount;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int layer;
 
   Location({
     required this.id,
     required this.name,
     required this.position,
+    required this.layer,
     this.description,
     this.address,
     this.categories,
@@ -32,6 +34,7 @@ class Location {
       id: documentId,
       name: data['name'] ?? '',
       position: data['position'] as GeoPoint? ?? const GeoPoint(0.0, 0.0),
+      layer: data['layer'] as int? ?? 0,
       description: data['description'],
       address: data['address'],
       categories: (data['categories'] as List<dynamic>?)?.cast<String>(),
@@ -53,6 +56,7 @@ class Location {
     return {
       'name': name,
       'position': position, // Guardamos el GeoPoint directamente
+      'layer': layer, // Asegúrate de que layer sea un int
       'description': description,
       'address': address,
       'categories': categories,

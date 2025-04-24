@@ -393,6 +393,9 @@ class _LocationFormDialogState extends ConsumerState<LocationFormDialog> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final _layerController = TextEditingController(
+    text: '1',
+  ); // valor por defecto
 
   LatLng? _selectedPosition;
   Set<Marker> _markers = {};
@@ -442,6 +445,7 @@ class _LocationFormDialogState extends ConsumerState<LocationFormDialog> {
     _nameController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
+    _layerController.dispose(); // liberar
     super.dispose();
   }
 
@@ -505,6 +509,7 @@ class _LocationFormDialogState extends ConsumerState<LocationFormDialog> {
             id: widget.existingLocation!.id,
             name: _nameController.text,
             position: geoPoint,
+            layer: int.parse(_layerController.text),
             description:
                 _descriptionController.text.isNotEmpty
                     ? _descriptionController.text
@@ -539,6 +544,7 @@ class _LocationFormDialogState extends ConsumerState<LocationFormDialog> {
             id: '', // El ID lo asigna Firestore
             name: _nameController.text,
             position: geoPoint,
+            layer: int.parse(_layerController.text),
             description:
                 _descriptionController.text.isNotEmpty
                     ? _descriptionController.text
@@ -798,6 +804,38 @@ class _LocationFormDialogState extends ConsumerState<LocationFormDialog> {
                           ),
                         ],
                         const SizedBox(height: 24),
+
+                        const SizedBox(height: 16),
+                        Text(
+                          'Capa de visualización *',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: _layerController.text,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Seleccionar capa',
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: '1', child: Text('Capa 1')),
+                            DropdownMenuItem(value: '2', child: Text('Capa 2')),
+                            DropdownMenuItem(value: '3', child: Text('Capa 3')),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _layerController.text = value;
+                              });
+                            }
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Selecciona una capa';
+                            }
+                            return null;
+                          },
+                        ),
 
                         // Botones de acción
                         Row(
