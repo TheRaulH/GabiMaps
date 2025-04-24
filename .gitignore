@@ -46,3 +46,9 @@ app.*.map.json
 
 
 android/app/src/main/AndroidManifest.xml
+linux/flutter/
+macos/Flutter/
+windows/flutter/
+.metadata
+/android/
+*.kts
