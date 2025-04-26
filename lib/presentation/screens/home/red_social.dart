@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 void main() => runApp(UAGRMRedSocialApp());
 
 class UAGRMRedSocialApp extends StatelessWidget {
+  const UAGRMRedSocialApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,6 +38,8 @@ class RedSocialUAGRM extends StatelessWidget {
     ),
   ];
 
+  RedSocialUAGRM({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,7 +72,7 @@ class Post {
 class PostWidget extends StatelessWidget {
   final Post post;
 
-  const PostWidget({Key? key, required this.post}) : super(key: key);
+  const PostWidget({super.key, required this.post});
 
   @override
   Widget build(BuildContext context) {

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 void main() => runApp(UAGRMMapaApp());
 
 class UAGRMMapaApp extends StatelessWidget {
+  const UAGRMMapaApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -52,6 +54,8 @@ class GuardadosPage extends StatelessWidget {
           'Biblioteca central con acceso a internet y zona de estudio.',
     ),
   ];
+
+  GuardadosPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gabimaps/presentation/screens/home/home_screen.dart';
 import 'package:gabimaps/presentation/screens/home/red_social.dart';
 import 'package:gabimaps/presentation/screens/home/saved.dart';
 import 'package:gabimaps/presentation/screens/map/map_screen.dart';
-import 'package:gabimaps/presentation/screens/notifications/notifications_screen.dart'; 
  
 
 class MainApp extends StatefulWidget {
