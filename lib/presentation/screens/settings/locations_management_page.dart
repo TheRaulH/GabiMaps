@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class LocationsManagementPage extends ConsumerStatefulWidget {
-  const LocationsManagementPage({Key? key}) : super(key: key);
+  const LocationsManagementPage({super.key});
 
   @override
   ConsumerState<LocationsManagementPage> createState() =>
@@ -382,7 +382,7 @@ class _LocationsManagementPageState
 class LocationFormDialog extends ConsumerStatefulWidget {
   final Location? existingLocation;
 
-  const LocationFormDialog({Key? key, this.existingLocation}) : super(key: key);
+  const LocationFormDialog({super.key, this.existingLocation});
 
   @override
   ConsumerState<LocationFormDialog> createState() => _LocationFormDialogState();

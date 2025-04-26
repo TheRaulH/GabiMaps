@@ -57,7 +57,7 @@ class LocationsNotifier extends StateNotifier<LocationsState> {
       return docRef.id;
     } catch (e) {
       state = LocationsError('Error al agregar ubicación: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -71,7 +71,7 @@ class LocationsNotifier extends StateNotifier<LocationsState> {
       await loadLocations(); // Recargar la lista
     } catch (e) {
       state = LocationsError('Error al actualizar ubicación: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -82,7 +82,7 @@ class LocationsNotifier extends StateNotifier<LocationsState> {
       await loadLocations(); // Recargar la lista
     } catch (e) {
       state = LocationsError('Error al eliminar ubicación: $e');
-      throw e;
+      rethrow;
     }
   }
 
