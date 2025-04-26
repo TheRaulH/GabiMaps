@@ -368,8 +368,9 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty)
+                  if (value == null || value.isEmpty) {
                     return 'El email es requerido';
+                  }
                   if (!value.contains('@')) return 'Email inválido';
                   return null;
                 },

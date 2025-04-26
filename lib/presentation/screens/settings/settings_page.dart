@@ -1,5 +1,4 @@
 // settings_page.dart
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/config/app_routes.dart';
@@ -9,7 +8,7 @@ import 'package:gabimaps/presentation/providers/user_provider.dart';
 import 'package:gabimaps/presentation/screens/settings/profile_screen.dart';
 
 class SettingsPage extends ConsumerWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   
 
@@ -217,7 +216,7 @@ class SettingsPage extends ConsumerWidget {
         const SizedBox(height: 8),
         Card(
           elevation: 0,
-          color: Theme.of(context).colorScheme.surfaceVariant,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

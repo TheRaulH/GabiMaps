@@ -9,7 +9,7 @@ import 'package:gabimaps/data/models/user_model.dart';
 import 'package:gabimaps/presentation/providers/user_provider.dart';
 
 class UserProfilePage extends ConsumerStatefulWidget {
-  const UserProfilePage({Key? key}) : super(key: key);
+  const UserProfilePage({super.key});
 
   @override
   ConsumerState<UserProfilePage> createState() => _UserProfilePageState();
@@ -198,7 +198,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage> {
 
                 // Información del usuario
                 Text(
-                  '${user?.email ?? ""}',
+                  user?.email ?? "",
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (user?.fechaRegistro != null)
@@ -268,7 +268,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage> {
                 // Selector de Facultad (multiselección)
                 Card(
                   elevation: 0,
-                  color: colorScheme.surfaceVariant,
+                  color: colorScheme.surfaceContainerHighest,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
