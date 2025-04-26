@@ -19,7 +19,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   final TextEditingController _searchController = TextEditingController();
   GoogleMapController? _mapController;
   LatLng? _currentPosition;
-  double _currentZoom = 14.0;
+  double _currentZoom = 14.0; // Inicializa el zoom en 14.0
   final ValueNotifier<double> _zoomNotifier = ValueNotifier(14.0);
 
   int _getLayerForZoom(double zoom) {
@@ -27,12 +27,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (zoom < 19) return 2;
     return 3;
   }
-
-  // Estado para filtros seleccionados
-  //final Set<String> _selectedFilters = {};
-
-  // Lista de filtros disponibles
-  //
 
   // Posición inicial del mapa
   final CameraPosition _initialPosition = const CameraPosition(
@@ -42,7 +36,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   BitmapDescriptor?
   _customIcon; // Variable para almacenar el icono personalizado
-
 
   @override
   void initState() {
@@ -134,12 +127,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     // Usamos ref.read para modificar el estado del provider
     ref.read(locationSearchProvider.notifier).state = _searchController.text;
   }
-  
 
   void _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
 
-     
+    final zoom = await controller.getZoomLevel();
+    _zoomNotifier.value = zoom;
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -147,8 +140,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       _currentPosition = position.target;
       _currentZoom = position.zoom;
     });
-    final zoom = await controller.getZoomLevel();
-    _zoomNotifier.value = zoom;
   }
 
   void _searchLocation() {
@@ -420,8 +411,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-   
-
   // Modifica _toggleFilter para actualizar el provider de categorías seleccionadas
   void _toggleFilter(String filter) {
     // Usamos ref.read para acceder al notifier del provider
@@ -484,41 +473,50 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       // Solo creamos marcadores si están cargadas
       final zoom = _zoomNotifier.value;
       final currentLayer = _getLayerForZoom(zoom);
-
       markers =
-          filteredLocations.map((location) {
-            return Marker(
-              markerId: MarkerId(location.id),
-              position: LatLng(location.latitude, location.longitude),
-              infoWindow: InfoWindow(
-                title: location.name,
-                snippet: location.address ?? location.description,
-                // Al hacer tap en la ventana de información, mostrar detalles completos
-                onTap: () => _showLocationDetails(context, location),
-              ),
-              // También podemos hacer que al hacer clic en el marcador muestre los detalles directamente
-              onTap: () {
-                // Usa el icono predeterminado si el personalizado aún no está cargado
-                _showLocationDetails(context, location);
-              },
-              icon: _customIcon!, // Asigna el icono personalizado aquí
-              // Opcional: personalizar el icono del marcador basado en la categoría
-              // icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-            );
-          }).toSet();
           filteredLocations
-              .where((location) => location.layer <= currentLayer)
-              .map(
-                (location) => Marker(
+              .where((location) {
+                if (location.layer == 1) {
+                  return true; // Capa 1 siempre visible
+                } else {
+                  return location.layer ==
+                      currentLayer; // Mostrar solo la capa correspondiente
+                }
+              })
+              .map((location) {
+                return Marker(
                   markerId: MarkerId(location.id),
                   position: LatLng(location.latitude, location.longitude),
                   infoWindow: InfoWindow(
                     title: location.name,
                     snippet: location.address ?? location.description,
+                    // Al hacer tap en la ventana de información, mostrar detalles completos
+                    onTap: () => _showLocationDetails(context, location),
                   ),
-                ),
-              )
+                  // También podemos hacer que al hacer clic en el marcador muestre los detalles directamente
+                  onTap: () {
+                    // Usa el icono predeterminado si el personalizado aún no está cargado
+                    _showLocationDetails(context, location);
+                  },
+                  icon: _customIcon!, // Asigna el icono personalizado aquí
+                  // Opcional: personalizar el icono del marcador basado en la categoría
+                  // icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                );
+              })
               .toSet();
+      filteredLocations
+          .where((location) => location.layer <= currentLayer)
+          .map(
+            (location) => Marker(
+              markerId: MarkerId(location.id),
+              position: LatLng(location.latitude, location.longitude),
+              infoWindow: InfoWindow(
+                title: location.name,
+                snippet: location.address ?? location.description,
+              ),
+            ),
+          )
+          .toSet();
     }
     return Scaffold(
       body: SafeArea(
@@ -620,110 +618,51 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
             // Mapa
             Expanded(
-              child: Stack(
-                children: [
-                  GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: _initialPosition,
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    mapType: MapType.normal,
-                    zoomControlsEnabled: false,
-                    compassEnabled: true,
-                    markers: markers, // Asigna el conjunto de marcadores
-                    onCameraMove: _onCameraMove, // Añade este callback
-                  ),
-                  // Controles personalizados del mapa
-                  Positioned(
-                    right: 16,
-                    bottom: 16,
-                    child: Column(
-                      children: [
-                        // Botón de zoom in
-                        FloatingActionButton.small(
-                          heroTag: 'zoomIn',
-                          onPressed: _zoomIn,
-                          child: const Icon(Icons.add),
-                        ),
-                        const SizedBox(height: 8),
-                        // Botón de zoom out
-                        FloatingActionButton.small(
-                          heroTag: 'zoomOut',
-                          onPressed: _zoomOut,
-                          child: const Icon(Icons.remove),
-                        ),
-                        const SizedBox(height: 8),
-                        FloatingActionButton.small(
-                          onPressed: _getCurrentLocation,
-                          tooltip: 'Ubicación actual',
-                          child: const Icon(Icons.my_location),
-                        ),
-
-                        // Botón de centrar
-                      ],
-                    ),
-                  ),
-
-                  // Indicador de coordenadas (opcional)
-                  if (_currentPosition != null)
-                    Positioned(
-                      left: 16,
-                      bottom: 16,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Lat: ${_currentPosition!.latitude.toStringAsFixed(5)}\nLng: ${_currentPosition!.longitude.toStringAsFixed(5)}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                  // Mostrar un indicador de carga si el estado es loading
-                  if (locationsState is LocationsLoading)
-                    const Center(child: CircularProgressIndicator()),
-                  // Mostrar un mensaje de error si el estado es error
-                  if (locationsState is LocationsError)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          'Error al cargar ubicaciones: ${locationsState.message}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 16,
               child: ValueListenableBuilder<double>(
                 valueListenable: _zoomNotifier,
                 builder: (context, zoom, _) {
                   final currentLayer = _getLayerForZoom(zoom);
-                  final markers = <Marker>{};
-                  print('🔍 Renderizando capa $currentLayer');
-                  for (var l in filteredLocations) {
-                    print('POI: ${l.name} - capa ${l.layer}');
-                  }
+                  final locationsState = ref.watch(locationsProvider);
+                  final filteredLocations = ref.watch(
+                    filteredLocationsProvider,
+                  );
+
+                  Set<Marker> markers = {};
 
                   if (locationsState is LocationsLoaded) {
-                    markers.addAll(
-                      filteredLocations
-                          .where((location) => location.layer <= currentLayer)
-                          .map(
-                            (location) => Marker(
-                              markerId: MarkerId(location.id),
-                              position: LatLng(
-                                location.latitude,
-                                location.longitude,
+                    markers =
+                        filteredLocations
+                            .where((location) {
+                              if (location.layer == 1) {
+                                return true; // Siempre mostrar capa 1
+                              } else {
+                                return location.layer ==
+                                    currentLayer; // Mostrar solo capa del zoom actual
+                              }
+                            })
+                            .map(
+                              (location) => Marker(
+                                markerId: MarkerId(location.id),
+                                position: LatLng(
+                                  location.latitude,
+                                  location.longitude,
+                                ),
+                                infoWindow: InfoWindow(
+                                  title: location.name,
+                                  snippet:
+                                      location.address ?? location.description,
+                                  onTap:
+                                      () => _showLocationDetails(
+                                        context,
+                                        location,
+                                      ),
+                                ),
+                                icon:
+                                    _customIcon ??
+                                    BitmapDescriptor.defaultMarker,
                               ),
-                              infoWindow: InfoWindow(
-                                title: location.name,
-                                snippet:
-                                    location.address ?? location.description,
-                              ),
-                            ),
-                          ),
-                    );
+                            )
+                            .toSet();
                   }
 
                   return Stack(
@@ -739,13 +678,57 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         markers: markers,
                         onCameraMove: (position) {
                           _zoomNotifier.value = position.zoom;
-                        },
-                        onCameraIdle: () async {
-                          final z = await _mapController?.getZoomLevel();
-                          if (z != null) _zoomNotifier.value = z;
+                          _currentPosition = position.target;
+                          _currentZoom = position.zoom;
                         },
                       ),
 
+                      // Botones flotantes
+                      Positioned(
+                        right: 16,
+                        bottom: 16,
+                        child: Column(
+                          children: [
+                            FloatingActionButton.small(
+                              heroTag: 'zoomIn',
+                              onPressed: _zoomIn,
+                              child: const Icon(Icons.add),
+                            ),
+                            const SizedBox(height: 8),
+                            FloatingActionButton.small(
+                              heroTag: 'zoomOut',
+                              onPressed: _zoomOut,
+                              child: const Icon(Icons.remove),
+                            ),
+                            const SizedBox(height: 8),
+                            FloatingActionButton.small(
+                              onPressed: _getCurrentLocation,
+                              tooltip: 'Ubicación actual',
+                              child: const Icon(Icons.my_location),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Indicador de coordenadas
+                      if (_currentPosition != null)
+                        Positioned(
+                          left: 16,
+                          bottom: 16,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Lat: ${_currentPosition!.latitude.toStringAsFixed(5)}\nLng: ${_currentPosition!.longitude.toStringAsFixed(5)}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+
+                      // Estados especiales
                       if (locationsState is LocationsLoading)
                         const Center(child: CircularProgressIndicator()),
 
@@ -763,6 +746,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             ),
                           ),
                         ),
+
                       if (locationsState is LocationsLoaded &&
                           filteredLocations.isEmpty &&
                           _searchController.text.isNotEmpty)
@@ -775,27 +759,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             ),
                           ),
                         ),
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Zoom: ${zoom.toStringAsFixed(1)} | Capa $currentLayer',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   );
                 },
@@ -804,7 +767,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ],
         ),
       ),
-       
     );
   }
 }
