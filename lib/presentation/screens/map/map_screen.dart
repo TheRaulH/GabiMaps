@@ -20,6 +20,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   GoogleMapController? _mapController;
   LatLng? _currentPosition;
   double _currentZoom = 14.0;
+  final ValueNotifier<double> _zoomNotifier = ValueNotifier(14.0);
+
+  int _getLayerForZoom(double zoom) {
+    if (zoom <= 18) return 1;
+    if (zoom < 19) return 2;
+    return 3;
+  }
+
+  // Estado para filtros seleccionados
+  //final Set<String> _selectedFilters = {};
+
+  // Lista de filtros disponibles
+  //
 
   // Posición inicial del mapa
   final CameraPosition _initialPosition = const CameraPosition(
@@ -123,7 +136,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
   
 
-  void _onMapCreated(GoogleMapController controller) {
+  void _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
 
      
@@ -134,6 +147,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       _currentPosition = position.target;
       _currentZoom = position.zoom;
     });
+    final zoom = await controller.getZoomLevel();
+    _zoomNotifier.value = zoom;
   }
 
   void _searchLocation() {
@@ -467,6 +482,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     Set<Marker> markers = {};
     if (locationsState is LocationsLoaded && _customIcon != null) {
       // Solo creamos marcadores si están cargadas
+      final zoom = _zoomNotifier.value;
+      final currentLayer = _getLayerForZoom(zoom);
+
       markers =
           filteredLocations.map((location) {
             return Marker(
@@ -488,6 +506,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               // icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
             );
           }).toSet();
+          filteredLocations
+              .where((location) => location.layer <= currentLayer)
+              .map(
+                (location) => Marker(
+                  markerId: MarkerId(location.id),
+                  position: LatLng(location.latitude, location.longitude),
+                  infoWindow: InfoWindow(
+                    title: location.name,
+                    snippet: location.address ?? location.description,
+                  ),
+                ),
+              )
+              .toSet();
     }
     return Scaffold(
       body: SafeArea(
@@ -664,21 +695,110 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           style: const TextStyle(
                             color: Colors.red,
                             fontSize: 16,
+              child: ValueListenableBuilder<double>(
+                valueListenable: _zoomNotifier,
+                builder: (context, zoom, _) {
+                  final currentLayer = _getLayerForZoom(zoom);
+                  final markers = <Marker>{};
+                  print('🔍 Renderizando capa $currentLayer');
+                  for (var l in filteredLocations) {
+                    print('POI: ${l.name} - capa ${l.layer}');
+                  }
+
+                  if (locationsState is LocationsLoaded) {
+                    markers.addAll(
+                      filteredLocations
+                          .where((location) => location.layer <= currentLayer)
+                          .map(
+                            (location) => Marker(
+                              markerId: MarkerId(location.id),
+                              position: LatLng(
+                                location.latitude,
+                                location.longitude,
+                              ),
+                              infoWindow: InfoWindow(
+                                title: location.name,
+                                snippet:
+                                    location.address ?? location.description,
+                              ),
+                            ),
+                          ),
+                    );
+                  }
+
+                  return Stack(
+                    children: [
+                      GoogleMap(
+                        onMapCreated: _onMapCreated,
+                        initialCameraPosition: _initialPosition,
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: true,
+                        mapType: MapType.normal,
+                        zoomControlsEnabled: false,
+                        compassEnabled: true,
+                        markers: markers,
+                        onCameraMove: (position) {
+                          _zoomNotifier.value = position.zoom;
+                        },
+                        onCameraIdle: () async {
+                          final z = await _mapController?.getZoomLevel();
+                          if (z != null) _zoomNotifier.value = z;
+                        },
+                      ),
+
+                      if (locationsState is LocationsLoading)
+                        const Center(child: CircularProgressIndicator()),
+
+                      if (locationsState is LocationsError)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              'Error al cargar ubicaciones: ${locationsState.message}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (locationsState is LocationsLoaded &&
+                          filteredLocations.isEmpty &&
+                          _searchController.text.isNotEmpty)
+                        const Center(
+                          child: Text(
+                            'No se encontraron ubicaciones con esos filtros',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Zoom: ${zoom.toStringAsFixed(1)} | Capa $currentLayer',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  // Mostrar un mensaje si no hay ubicaciones cargadas y no hay error/carga
-                  if (locationsState is LocationsLoaded &&
-                      filteredLocations.isEmpty &&
-                      _searchController.text.isNotEmpty)
-                    const Center(
-                      child: Text(
-                        'No se encontraron ubicaciones con esos filtros',
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
-                      ),
-                    ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
           ],
