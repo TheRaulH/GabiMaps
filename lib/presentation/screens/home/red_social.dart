@@ -80,16 +80,21 @@ class PostWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ListTile(
+
           leading: CircleAvatar(backgroundImage: NetworkImage(post.userAvatar)),
+          contentPadding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
           title: Text(
             post.username,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           trailing: Icon(Icons.more_vert),
         ),
-        Image.network(post.imageUrl, fit: BoxFit.cover, width: double.infinity),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding:  EdgeInsets.symmetric(horizontal: 10),
+          child: Image.network(post.imageUrl, fit: BoxFit.cover, width: double.infinity),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Row(
             children: [
               Icon(Icons.favorite_border),

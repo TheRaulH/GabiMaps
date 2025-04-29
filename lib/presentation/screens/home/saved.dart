@@ -60,7 +60,7 @@ class GuardadosPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Guardados - Mapa UAGRM'), centerTitle: true),
+      appBar: AppBar(automaticallyImplyLeading: false,title: Text('Guardados - Mapa UAGRM'), centerTitle: true),
       body: ListView.builder(
         itemCount: lugaresGuardados.length,
         itemBuilder: (context, index) {
