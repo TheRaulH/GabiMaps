@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:gabimaps/domain/entities/location.dart';
 import 'package:gabimaps/presentation/providers/location_provider.dart';
 import 'package:intl/intl.dart';
@@ -263,29 +264,47 @@ class _LocationsManagementPageState
                         height: 200,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: GoogleMap(
-                            initialCameraPosition: CameraPosition(
-                              target: LatLng(
+                          child: FlutterMap(
+                            options: MapOptions(
+                              initialCenter: LatLng(
                                 location.latitude,
                                 location.longitude,
                               ),
-                              zoom: 15,
-                            ),
-                            markers: {
-                              Marker(
-                                markerId: MarkerId(location.id),
-                                position: LatLng(
-                                  location.latitude,
-                                  location.longitude,
-                                ),
-                                infoWindow: InfoWindow(title: location.name),
+                              initialZoom: 15,
+                              interactionOptions: const InteractionOptions(
+                                flags:
+                                    InteractiveFlag
+                                        .none, // 🔥 Esto reemplaza a interactiveFlags
                               ),
-                            },
-                            zoomControlsEnabled: false,
-                            myLocationButtonEnabled: false,
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName: 'com.example.gabimaps',
+                              ),
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: LatLng(
+                                      location.latitude,
+                                      location.longitude,
+                                    ),
+                                    width: 40,
+                                    height: 40,
+                                    child: Icon(
+                                      Icons.location_pin,
+                                      size: 40,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 16),
                       if (location.createdAt != null ||
                           location.updatedAt != null)
@@ -413,8 +432,7 @@ class _LocationFormDialogState extends ConsumerState<LocationFormDialog> {
   File? _imageFile;
   String? _existingImageUrl;
   bool _isLoading = false;
-
-  final GoogleMapController? _mapController = null;
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
@@ -430,13 +448,15 @@ class _LocationFormDialogState extends ConsumerState<LocationFormDialog> {
       _selectedCategories = widget.existingLocation!.categories?.toList() ?? [];
       _existingImageUrl = widget.existingLocation!.imageUrl;
 
-      // Configurar el marcador inicial
+      // ✅ Cambiado para flutter_map
       _markers = {
         Marker(
-          markerId: const MarkerId('selected_position'),
-          position: _selectedPosition!,
+          point: _selectedPosition!,
+          width: 40,
+          height: 40,
+          child: const Icon(Icons.location_on, color: Colors.red, size: 40),
         ),
-      };
+      }; // 👈 Aquí convertimos la lista en Set
     }
   }
 
@@ -764,34 +784,39 @@ class _LocationFormDialogState extends ConsumerState<LocationFormDialog> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: GoogleMap(
-                              initialCameraPosition: CameraPosition(
-                                target:
+                            child: FlutterMap(
+                              mapController: _mapController,
+                              options: MapOptions(
+                                initialCenter:
                                     _selectedPosition ??
-                                    const LatLng(
-                                      -17.777438043503892,
-                                      -63.190263743504275,
-                                    ), // CDMX por defecto
-                                zoom: 15,
-                              ),
-                              onMapCreated: (controller) {
-                                // No se puede asignar directamente debido a que _mapController es final
-                                // Pero podríamos usar otro enfoque si necesitamos el controlador
-                              },
-                              markers: _markers,
-                              onTap: (position) {
-                                setState(() {
-                                  _selectedPosition = position;
-                                  _markers = {
-                                    Marker(
-                                      markerId: const MarkerId(
-                                        'selected_position',
+                                    LatLng(-17.7774, -63.1902),
+                                initialZoom: 15,
+                                onTap: (tapPosition, latLng) {
+                                  setState(() {
+                                    _selectedPosition = latLng;
+                                    _markers = {
+                                      Marker(
+                                        point: latLng,
+                                        width: 40,
+                                        height: 40,
+                                        child: const Icon(
+                                          Icons.location_on,
+                                          color: Colors.red,
+                                          size: 40,
+                                        ),
                                       ),
-                                      position: position,
-                                    ),
-                                  };
-                                });
-                              },
+                                    };
+                                  });
+                                },
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate:
+                                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.example.app',
+                                ),
+                                MarkerLayer(markers: _markers.toList()),
+                              ],
                             ),
                           ),
                         ),
