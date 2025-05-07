@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gabimaps/presentation/screens/notifications/error_screen.dart';
-import 'services/firebase_service.dart';
+import 'package:gabimaps/features/notifications/ui/error_screen.dart';
+import 'shared/services/firebase_service.dart';
 import 'app/config/app_routes.dart';
 import 'app/config/theme.dart';
 
