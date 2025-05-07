@@ -72,8 +72,7 @@ class UserNotifier extends StateNotifier<UserState> {
   }
 
   Future<void> updateUser(UserModel user) async {
-    try {
-      final previousState = state;
+    try { 
       state = UserLoading();
 
       await _saveUserToFirestore(user);
