@@ -1,11 +1,13 @@
+import 'dart:async';
 import 'dart:ui' as ui; // Importa dart:ui con un alias
-
+import 'package:gabimaps/presentation/widgets/category_marker_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/presentation/providers/location_provider.dart';
 import 'package:gabimaps/presentation/screens/settings/settings_page.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -17,26 +19,38 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen> {
   final TextEditingController _searchController = TextEditingController();
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
+  StreamSubscription<MapEvent>? _mapEventSubscription;
   LatLng? _currentPosition;
-  double _currentZoom = 14.0;
+  double _currentZoom = 14.0; // Inicializa el zoom en 14.0
+  final ValueNotifier<double> _zoomNotifier = ValueNotifier(14.0);
+
+  int _getLayerForZoom(double zoom) {
+    if (zoom <= 18) return 1;
+    if (zoom < 19) return 2;
+    return 3;
+  }
 
   // Posición inicial del mapa
-  final CameraPosition _initialPosition = const CameraPosition(
-    target: LatLng(-17.777438043503892, -63.190263743504275),
-    zoom: 14.0,
-  );
+  final LatLng _initialPosition = const LatLng(
+    -17.777438043503892,
+    -63.190263743504275,
+  ); // Coordenadas iniciales del mapa
 
+  Uint8List? _customIconBytes;
+
+  /*
   BitmapDescriptor?
   _customIcon; // Variable para almacenar el icono personalizado
 
-
+  El icono se define como Widget directamente
+ */
   @override
   void initState() {
     super.initState();
-    // Cargar las ubicaciones al iniciar la pantalla del mapa si no están ya cargadas
+
+    // 1. Cargar ubicaciones apenas arranca la pantalla
     Future.microtask(() {
-      // Usamos ref.read para acceder al notifier una vez al inicio
       final locationsState = ref.read(locationsProvider);
       if (locationsState is! LocationsLoaded &&
           locationsState is! LocationsLoading) {
@@ -44,11 +58,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       }
     });
 
-    // Cargar el icono personalizado al inicializar
-    _loadCustomMarkerIcon();
-
-    // Escucha los cambios en el controlador de búsqueda para actualizar el provider
+    // 2. Escuchar cambios de búsqueda
     _searchController.addListener(_onSearchChanged);
+
+    // 3. ESCUCHAR movimientos del mapa
+    _mapEventSubscription = _mapController.mapEventStream.listen((event) {
+      if (event is MapEventMove || event is MapEventMoveEnd) {
+        final center = _mapController.camera.center;
+        final zoom = _mapController.camera.zoom;
+        setState(() {
+          _currentPosition = LatLng(center.latitude, center.longitude);
+          _currentZoom = zoom;
+        });
+      }
+    });
   }
 
   Future<void> _getCurrentLocation() async {
@@ -78,13 +101,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    final cameraUpdate = CameraUpdate.newLatLng(
-      LatLng(position.latitude, position.longitude),
-    );
+    final zoom = _mapController.camera.zoom;
 
-    _mapController?.animateCamera(cameraUpdate);
+    final newPosition = LatLng(position.latitude, position.longitude);
+
+    if (mounted) {
+      setState(() {
+        _currentPosition = newPosition;
+        _mapController.move(_currentPosition!, zoom);
+      });
+    }
   }
 
+  /*
   // Función asíncrona para cargar el icono personalizado
   Future<void> _loadCustomMarkerIcon() async {
     final ByteData byteData = await rootBundle.load(
@@ -106,6 +135,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       resizedByteData.buffer.asUint8List(),
     );
   }
+ Ya no es necesario, ya que el icono se define como Widget directamente
+  */
 
   @override
   void dispose() {
@@ -121,12 +152,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     // Usamos ref.read para modificar el estado del provider
     ref.read(locationSearchProvider.notifier).state = _searchController.text;
   }
-  
 
-  void _onMapCreated(GoogleMapController controller) {
+  void _zoomIn() {
+    final newZoom = (_mapController.camera.zoom + 1).clamp(3.0, 20.0);
+    _mapController.move(_mapController.camera.center, newZoom);
+  }
+
+  void _zoomOut() {
+    final newZoom = (_mapController.camera.zoom - 1).clamp(3.0, 20.0);
+    _mapController.move(_mapController.camera.center, newZoom);
+  }
+
+  /*
+  void _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
 
-     
+    final zoom = await controller.getZoomLevel();
+    _zoomNotifier.value = zoom;
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -135,29 +177,25 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       _currentZoom = position.zoom;
     });
   }
-
+*/
   void _searchLocation() {
-    // Implementar búsqueda de ubicación (opcional: centrar mapa en resultado)
-    // Aquí se podría integrar con API de Places o geocodificación
     final searchText = _searchController.text;
     if (searchText.isNotEmpty) {
-      // Puedes obtener la primera ubicación filtrada y centrar el mapa en ella
       final currentFilteredLocations = ref.read(filteredLocationsProvider);
       if (currentFilteredLocations.isNotEmpty) {
         final firstLocation = currentFilteredLocations.first;
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLng(
-            LatLng(firstLocation.latitude, firstLocation.longitude),
-          ),
+
+        _mapController.move(
+          LatLng(firstLocation.latitude, firstLocation.longitude),
+          _currentZoom,
         );
-        // SnackBar opcional para confirmar la búsqueda/centrado
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Centrando en: ${firstLocation.name}')),
           );
         }
       } else {
-        // SnackBar si no se encontraron resultados
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -167,7 +205,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         }
       }
     } else {
-      // SnackBar si la búsqueda está vacía
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -349,19 +386,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: () {
-                              // Centrar mapa en esta ubicación y cerrar modal
-                              _mapController?.animateCamera(
-                                CameraUpdate.newLatLngZoom(
+                              if (_mapController != null) {
+                                _mapController.move(
                                   LatLng(location.latitude, location.longitude),
-                                  18.0,
-                                ),
-                              );
+                                  18.0, // Zoom fijo en 18.0
+                                );
+                              }
                               Navigator.pop(context);
                             },
                             icon: const Icon(Icons.center_focus_strong),
                             label: const Text('Centrar en mapa'),
                           ),
-                          // Botón para compartir ubicación
                           ElevatedButton.icon(
                             onPressed: () {
                               // Aquí implementarías la funcionalidad para compartir la ubicación
@@ -386,26 +421,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ),
     );
   }
-
-  // Métodos para los controles del mapa
-  void _zoomIn() {
-    _mapController?.animateCamera(CameraUpdate.zoomIn());
-  }
-
-  void _zoomOut() {
-    _mapController?.animateCamera(CameraUpdate.zoomOut());
-  }
-
-  void _resetToInitialPosition() {
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        _initialPosition.target,
-        _initialPosition.zoom,
-      ),
-    );
-  }
-
-   
 
   // Modifica _toggleFilter para actualizar el provider de categorías seleccionadas
   void _toggleFilter(String filter) {
@@ -463,32 +478,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       'Aula',
     ];
 
-    // Crear los marcadores a partir de las ubicaciones filtradas
-    Set<Marker> markers = {};
-    if (locationsState is LocationsLoaded && _customIcon != null) {
-      // Solo creamos marcadores si están cargadas
-      markers =
-          filteredLocations.map((location) {
-            return Marker(
-              markerId: MarkerId(location.id),
-              position: LatLng(location.latitude, location.longitude),
-              infoWindow: InfoWindow(
-                title: location.name,
-                snippet: location.address ?? location.description,
-                // Al hacer tap en la ventana de información, mostrar detalles completos
-                onTap: () => _showLocationDetails(context, location),
-              ),
-              // También podemos hacer que al hacer clic en el marcador muestre los detalles directamente
-              onTap: () {
-                // Usa el icono predeterminado si el personalizado aún no está cargado
-                _showLocationDetails(context, location);
-              },
-              icon: _customIcon!, // Asigna el icono personalizado aquí
-              // Opcional: personalizar el icono del marcador basado en la categoría
-              // icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-            );
-          }).toSet();
-    }
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -589,102 +578,175 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
             // Mapa
             Expanded(
-              child: Stack(
-                children: [
-                  GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: _initialPosition,
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    mapType: MapType.normal,
-                    zoomControlsEnabled: false,
-                    compassEnabled: true,
-                    markers: markers, // Asigna el conjunto de marcadores
-                    onCameraMove: _onCameraMove, // Añade este callback
-                  ),
-                  // Controles personalizados del mapa
-                  Positioned(
-                    right: 16,
-                    bottom: 16,
-                    child: Column(
-                      children: [
-                        // Botón de zoom in
-                        FloatingActionButton.small(
-                          heroTag: 'zoomIn',
-                          onPressed: _zoomIn,
-                          child: const Icon(Icons.add),
-                        ),
-                        const SizedBox(height: 8),
-                        // Botón de zoom out
-                        FloatingActionButton.small(
-                          heroTag: 'zoomOut',
-                          onPressed: _zoomOut,
-                          child: const Icon(Icons.remove),
-                        ),
-                        const SizedBox(height: 8),
-                        FloatingActionButton.small(
-                          onPressed: _getCurrentLocation,
-                          tooltip: 'Ubicación actual',
-                          child: const Icon(Icons.my_location),
-                        ),
+              child: ValueListenableBuilder<double>(
+                valueListenable: _zoomNotifier,
+                builder: (context, zoom, _) {
+                  final currentLayer = _getLayerForZoom(zoom);
+                  final locationsState = ref.watch(locationsProvider);
+                  final filteredLocations = ref.watch(
+                    filteredLocationsProvider,
+                  );
 
-                        // Botón de centrar
-                      ],
-                    ),
-                  ),
+                  List<Marker> markers = [];
+                  if (locationsState is LocationsLoaded) {
+                    final zoom = _zoomNotifier.value;
+                    final currentLayer = _getLayerForZoom(zoom);
+                    final hasCategoryFilter = selectedFilters.isNotEmpty;
 
-                  // Indicador de coordenadas (opcional)
-                  if (_currentPosition != null)
-                    Positioned(
-                      left: 16,
-                      bottom: 16,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(8),
+                    markers =
+                        filteredLocations
+                            .where((location) {
+                              if (hasCategoryFilter) {
+                                // Mostrar si alguna categoría de la ubicación coincide con las seleccionadas
+                                return location.categories?.any(
+                                      selectedFilters.contains,
+                                    ) ??
+                                    false;
+                              } else {
+                                // Sin filtros: aplicar lógica de capas
+                                return location.layer == 1 ||
+                                    location.layer <= currentLayer;
+                              }
+                            })
+                            .map((location) {
+                              final markerSize =
+                                  (_currentZoom.clamp(13.0, 18.0) - 10) * 4;
+                              return Marker(
+                                point: LatLng(
+                                  location.latitude,
+                                  location.longitude,
+                                ),
+                                width: markerSize,
+                                height: markerSize,
+                                child: GestureDetector(
+                                  onTap:
+                                      () => _showLocationDetails(
+                                        context,
+                                        location,
+                                      ),
+                                  child: CategoryMarkerIcon(
+                                    category:
+                                        location.categories?.first ?? 'default',
+                                    size: markerSize,
+                                  ),
+                                ),
+                              );
+                            })
+                            .toList();
+                  }
+
+                  return Stack(
+                    children: [
+                      FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: _currentPosition ?? _initialPosition,
+                          initialZoom: _currentZoom,
+                          minZoom: 3,
+                          maxZoom: 20,
+                          onPositionChanged: (position, hasGesture) {
+                            if (mounted && position.center != null) {
+                              _currentPosition = position.center!;
+                              _currentZoom = position.zoom ?? _currentZoom;
+                              _zoomNotifier.value = _currentZoom;
+                            }
+                          },
                         ),
-                        child: Text(
-                          'Lat: ${_currentPosition!.latitude.toStringAsFixed(5)}\nLng: ${_currentPosition!.longitude.toStringAsFixed(5)}',
-                          style: const TextStyle(fontSize: 12),
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.example.app',
+                          ),
+
+                          MarkerLayer(markers: markers.toList()),
+                        ],
+                      ),
+
+                      // Botones flotantes
+                      Positioned(
+                        right: 16,
+                        bottom: 16,
+                        child: Column(
+                          children: [
+                            FloatingActionButton.small(
+                              heroTag: 'zoomIn',
+                              onPressed: _zoomIn,
+                              child: const Icon(Icons.add),
+                            ),
+                            const SizedBox(height: 8),
+                            FloatingActionButton.small(
+                              heroTag: 'zoomOut',
+                              onPressed: _zoomOut,
+                              child: const Icon(Icons.remove),
+                            ),
+                            const SizedBox(height: 8),
+                            FloatingActionButton.small(
+                              onPressed: _getCurrentLocation,
+                              tooltip: 'Ubicación actual',
+                              child: const Icon(Icons.my_location),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  // Mostrar un indicador de carga si el estado es loading
-                  if (locationsState is LocationsLoading)
-                    const Center(child: CircularProgressIndicator()),
-                  // Mostrar un mensaje de error si el estado es error
-                  if (locationsState is LocationsError)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          'Error al cargar ubicaciones: ${locationsState.message}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 16,
+
+                      // Indicador de coordenadas
+                      if (_currentPosition != null)
+                        Positioned(
+                          left: 16,
+                          bottom: 16,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Lat: ${_currentPosition!.latitude.toStringAsFixed(5)}\nLng: ${_currentPosition!.longitude.toStringAsFixed(5)}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  // Mostrar un mensaje si no hay ubicaciones cargadas y no hay error/carga
-                  if (locationsState is LocationsLoaded &&
-                      filteredLocations.isEmpty &&
-                      _searchController.text.isNotEmpty)
-                    const Center(
-                      child: Text(
-                        'No se encontraron ubicaciones con esos filtros',
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
-                      ),
-                    ),
-                ],
+
+                      // Estados especiales
+                      if (locationsState is LocationsLoading)
+                        const Center(child: CircularProgressIndicator()),
+
+                      if (locationsState is LocationsError)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              'Error al cargar ubicaciones: ${locationsState.message}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      if (locationsState is LocationsLoaded &&
+                          filteredLocations.isEmpty &&
+                          _searchController.text.isNotEmpty)
+                        const Center(
+                          child: Text(
+                            'No se encontraron ubicaciones con esos filtros',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
-       
     );
   }
 }
