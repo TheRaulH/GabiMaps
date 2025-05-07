@@ -5,7 +5,6 @@ import 'package:gabimaps/presentation/screens/home/red_social.dart';
 import 'package:gabimaps/presentation/screens/home/saved.dart';
 import 'package:gabimaps/presentation/screens/map/map_screen.dart';
 import 'package:gabimaps/utils/bottom_nav_btn.dart';
-import 'package:gabimaps/utils/clipper.dart';
 import 'package:gabimaps/utils/size_config.dart';
 
 

@@ -143,7 +143,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     _searchController.removeListener(_onSearchChanged); // Limpiar listener
 
     _searchController.dispose();
-    _mapController?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -386,12 +386,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: () {
-                              if (_mapController != null) {
-                                _mapController.move(
-                                  LatLng(location.latitude, location.longitude),
-                                  18.0, // Zoom fijo en 18.0
-                                );
-                              }
+                              _mapController.move(
+                                LatLng(location.latitude, location.longitude),
+                                18.0, // Zoom fijo en 18.0
+                              );
                               Navigator.pop(context);
                             },
                             icon: const Icon(Icons.center_focus_strong),
@@ -645,8 +643,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           minZoom: 3,
                           maxZoom: 20,
                           onPositionChanged: (position, hasGesture) {
-                            if (mounted && position.center != null) {
-                              _currentPosition = position.center!;
+                            if (mounted) {
+                              _currentPosition = position.center;
                               _currentZoom = position.zoom ?? _currentZoom;
                               _zoomNotifier.value = _currentZoom;
                             }
