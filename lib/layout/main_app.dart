@@ -1,25 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/features/home/ui/profile.dart';
 import 'package:gabimaps/features/home/ui/red_social.dart';
 import 'package:gabimaps/features/home/ui/saved.dart';
 import 'package:gabimaps/features/map/ui/map_screen.dart';
-import 'package:gabimaps/features/home/widgets/bottom_nav_btn.dart';
 import 'package:gabimaps/app/core/size_config.dart';
 
+// Proveedor para el modo de tema
+final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
+  return ThemeNotifier();
+});
 
-class MainApp extends StatefulWidget {
+// Notificador de estado para gestionar el tema
+class ThemeNotifier extends StateNotifier<ThemeMode> {
+  ThemeNotifier() : super(ThemeMode.system);
+
+  // Método para cambiar el tema
+  void changeTheme(ThemeMode themeMode) {
+    state = themeMode;
+  }
+}
+
+class MainApp extends ConsumerStatefulWidget {
   const MainApp({super.key});
 
   @override
-  State<MainApp> createState() => _MainAppState();
+  ConsumerState<MainApp> createState() => _MainAppState();
 }
 
-class _MainAppState extends State<MainApp> {
+class _MainAppState extends ConsumerState<MainApp> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final PageController pageController = PageController();
 
-  final List<Widget> screens =  [
+  final List<Widget> screens = [
     MapScreen(),
     GuardadosPage(),
     RedSocialUAGRM(),
@@ -30,14 +44,25 @@ class _MainAppState extends State<MainApp> {
   void initState() {
     super.initState();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     pageController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
+  @override
+  void didChangePlatformBrightness() {
+    // Cuando cambia el brillo del sistema, actualiza el tema si está en modo sistema
+    if (ref.read(themeProvider) == ThemeMode.system) {
+      // Forzar una reconstrucción
+      ref.invalidate(themeProvider);
+    }
+    super.didChangePlatformBrightness();
+  }
   void animateToPage(int page) {
     pageController.animateToPage(
       page,
@@ -49,8 +74,13 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     AppSizes().init(context);
+    // Obtener el tema actual basado en el modo de tema y el brillo de la plataforma
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      // Usar el color de fondo del tema en lugar de un color duro
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         bottom: false,
         child: Stack(
@@ -68,7 +98,7 @@ class _MainAppState extends State<MainApp> {
               bottom: 0,
               right: 0,
               left: 0,
-              child: _buildBottomNav(),
+              child: _buildBottomNav(isDarkMode, colorScheme),
             ),
           ],
         ),
@@ -76,7 +106,19 @@ class _MainAppState extends State<MainApp> {
     );
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildBottomNav(bool isDarkMode, ColorScheme colorScheme) {
+    // Colores adaptados al tema
+    final navBackgroundColor =
+        isDarkMode
+            ? colorScheme
+                .onPrimaryContainer //
+            : colorScheme.secondaryContainer; //edor primario en modo claro
+
+    final indicatorColor =
+        isDarkMode
+            ? colorScheme
+                .onPrimary //
+            : colorScheme.onPrimary; // Color de superficie en modo claro
     return Padding(
       padding: EdgeInsets.fromLTRB(
         AppSizes.blockSizeHorizontal * 4.5,
@@ -88,11 +130,12 @@ class _MainAppState extends State<MainApp> {
         borderRadius: BorderRadius.circular(30),
         color: Colors.transparent,
         elevation: 6,
+        shadowColor: colorScheme.surface,
         child: Container(
           height: AppSizes.blockSizeHorizontal * 18,
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
-            color: Colors.grey[900],
+            color: navBackgroundColor,
             borderRadius: BorderRadius.circular(30),
           ),
           child: Stack(
@@ -109,6 +152,7 @@ class _MainAppState extends State<MainApp> {
                       icon: Icons.home,
                       index: 0,
                       currentIndex: _currentIndex,
+                      colorScheme: colorScheme,
                       onPressed: (val) {
                         animateToPage(val);
                         setState(() => _currentIndex = val);
@@ -118,6 +162,7 @@ class _MainAppState extends State<MainApp> {
                       icon: Icons.star,
                       index: 1,
                       currentIndex: _currentIndex,
+                      colorScheme: colorScheme,
                       onPressed: (val) {
                         animateToPage(val);
                         setState(() => _currentIndex = val);
@@ -127,6 +172,7 @@ class _MainAppState extends State<MainApp> {
                       icon: Icons.access_alarm_outlined,
                       index: 2,
                       currentIndex: _currentIndex,
+                      colorScheme: colorScheme,
                       onPressed: (val) {
                         animateToPage(val);
                         setState(() => _currentIndex = val);
@@ -136,12 +182,12 @@ class _MainAppState extends State<MainApp> {
                       icon: Icons.message_rounded,
                       index: 3,
                       currentIndex: _currentIndex,
+                      colorScheme: colorScheme,
                       onPressed: (val) {
                         animateToPage(val);
                         setState(() => _currentIndex = val);
                       },
                     ),
-
                   ],
                 ),
               ),
@@ -156,11 +202,10 @@ class _MainAppState extends State<MainApp> {
                       height: AppSizes.blockSizeHorizontal * 1.0,
                       width: AppSizes.blockSizeHorizontal * 12,
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: indicatorColor,
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -185,11 +230,38 @@ class _MainAppState extends State<MainApp> {
         return 0;
     }
   }
-
 }
 
-final List<Color> gradient = [
-  Colors.blueGrey.withOpacity(0.8),
-  Colors.blueGrey.withOpacity(0.5),
-  Colors.transparent
-];
+class BottomNavBTN extends StatelessWidget {
+  final IconData icon;
+  final int index;
+  final int currentIndex;
+  final ColorScheme colorScheme;
+  final Function(int) onPressed;
+
+  const BottomNavBTN({
+    super.key,
+    required this.icon,
+    required this.index,
+    required this.currentIndex,
+    required this.colorScheme,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = currentIndex == index;
+
+    return IconButton(
+      onPressed: () => onPressed(index),
+      icon: Icon(
+        icon,
+        color:
+            isActive
+                ? colorScheme.onPrimary
+                : colorScheme.onPrimary.withOpacity(0.5),
+        size: isActive ? 28 : 24,
+      ),
+    );
+  }
+}
