@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gabimaps/features/home/ui/profile.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:gabimaps/features/home/ui/red_social.dart';
 import 'package:gabimaps/features/home/ui/saved.dart';
 import 'package:gabimaps/features/map/ui/map_screen.dart';
 import 'package:gabimaps/app/core/size_config.dart';
+import 'package:gabimaps/features/user/ui/profile_screen.dart';
 
 // Proveedor para el modo de tema
 final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
@@ -37,7 +37,7 @@ class _MainAppState extends ConsumerState<MainApp> with WidgetsBindingObserver {
     MapScreen(),
     GuardadosPage(),
     RedSocialUAGRM(),
-    Profile(),
+    ProfileScreen(),
   ];
 
   @override
@@ -111,13 +111,13 @@ class _MainAppState extends ConsumerState<MainApp> with WidgetsBindingObserver {
     final navBackgroundColor =
         isDarkMode
             ? colorScheme
-                .onPrimaryContainer //
+                .surface //
             : colorScheme.secondaryContainer; //edor primario en modo claro
 
     final indicatorColor =
         isDarkMode
             ? colorScheme
-                .onPrimary //
+                .onSurface //
             : colorScheme.onPrimary; // Color de superficie en modo claro
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -255,11 +255,10 @@ class BottomNavBTN extends StatelessWidget {
     return IconButton(
       onPressed: () => onPressed(index),
       icon: Icon(
-        icon,
+        icon,         
         color:
             isActive
-                ? colorScheme.onPrimary
-                : colorScheme.onPrimary.withOpacity(0.5),
+                ? colorScheme.onSecondaryContainer : colorScheme.onSurface,
         size: isActive ? 28 : 24,
       ),
     );
