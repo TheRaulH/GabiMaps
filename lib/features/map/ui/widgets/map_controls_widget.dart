@@ -31,7 +31,7 @@ class MapControlsWidget extends StatelessWidget {
           bottom: 96,
           child: Column(
             children: [
-              // Botón de seguimiento (nuevo)
+              // Botón de seguimiento forma circular redonda               
               FloatingActionButton(
                 heroTag: 'location',
                 mini: true,
@@ -84,6 +84,7 @@ class MapControlsWidget extends StatelessWidget {
                 color: ColorScheme.highContrastDark().primaryFixed,
                 
                 borderRadius: BorderRadius.circular(8),
+                
               ),
               child: Text(
                 'Lat: ${currentPosition!.latitude.toStringAsFixed(5)}\n'
