@@ -1,4 +1,6 @@
 // user_provider.dart
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +27,7 @@ class UserError extends UserState {
 class UserNotifier extends StateNotifier<UserState> {
   final FirebaseFirestore _firestore;
   final auth.FirebaseAuth _auth;
+  StreamSubscription<auth.User?>? _authSubscription;
 
   UserNotifier({
     required FirebaseFirestore firestore,
@@ -32,7 +35,42 @@ class UserNotifier extends StateNotifier<UserState> {
   }) : _firestore = firestore,
        _auth = auth,
        super(UserInitial()) {
-    loadUser();
+    _authSubscription = _auth.authStateChanges().listen(_onAuthStateChanged);
+  }
+
+  Future<void> _onAuthStateChanged(auth.User? firebaseUser) async {
+    if (firebaseUser == null) {
+      state = UserInitial();
+      return;
+    }
+
+    state = UserLoading();
+
+    try {
+      final userDoc =
+          await _firestore.collection('users').doc(firebaseUser.uid).get();
+
+      if (userDoc.exists) {
+        final user = UserModel.fromFirestore(
+          userDoc.data() as Map<String, dynamic>,
+          firebaseUser.uid,
+        );
+        state = UserLoaded(user);
+      } else {
+        final newUser = UserModel(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          rol: 'usuario',
+          fechaRegistro: DateTime.now(),
+          photoURL: firebaseUser.photoURL,
+        );
+
+        await _saveUserToFirestore(newUser);
+        state = UserLoaded(newUser);
+      }
+    } catch (e) {
+      state = UserError('Error al obtener el usuario: $e');
+    }
   }
 
   Future<void> loadUser() async {
@@ -87,6 +125,11 @@ class UserNotifier extends StateNotifier<UserState> {
         .collection('users')
         .doc(user.uid)
         .set(user.toFirestore(), SetOptions(merge: true));
+  }
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 }
 
