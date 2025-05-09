@@ -65,7 +65,7 @@ class MyApp extends ConsumerWidget {
 class ThemeListener extends ConsumerStatefulWidget {
   final Widget child;
 
-  const ThemeListener({required this.child, Key? key}) : super(key: key);
+  const ThemeListener({required this.child, super.key});
 
   @override
   ConsumerState<ThemeListener> createState() => _ThemeListenerState();
