@@ -33,7 +33,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   StreamSubscription<MapEvent>? _mapEventSubscription;
   final ValueNotifier<double> _zoomNotifier = ValueNotifier(14.0);
   LatLng? _currentPosition;
-  double _currentZoom = 15.0;
+  double _currentZoom = 16.0;
   //bool _trackingLocation = false; // Nuevo estado para seguimiento
   //late StreamController<Position> _positionStreamController;
   //StreamSubscription<Position>? _positionSubscription;
@@ -243,6 +243,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       valueListenable: _zoomNotifier,
       builder: (context, zoom, _) {
         final locationsState = ref.watch(locationsProvider);
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
         return Stack(
           children: [
@@ -262,10 +263,34 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 },
               ),
               children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.app',
-                ),
+
+                if (isDarkMode)
+                  TileLayer(
+                    urlTemplate:
+                        'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
+                    subdomains: const ['a', 'b', 'c'],
+                    userAgentPackageName: 'com.example.app',
+                  )
+                else
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.example.app',
+                  ),
+                // Capa base (siempre presente)
+
+                // TileLayer(
+                //   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                //   userAgentPackageName: 'com.example.app',
+                // ),
+
+                // // Capa oscura (solo visible en modo oscuro)
+                // TileLayer(
+                //   urlTemplate:
+                //       'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
+                //   subdomains: const ['a', 'b', 'c'],
+                //   userAgentPackageName: 'com.example.app',
+                // ),
                 // Marcador de ubicación actual
                 if (_currentPosition != null)
                   CurrentLocationLayer(
