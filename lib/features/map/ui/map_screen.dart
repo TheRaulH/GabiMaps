@@ -160,7 +160,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     _mapController.move(_mapController.camera.center, clampedZoom);
   }
 
-  void _searchLocation() {
+  void _searchLocation(String text) {
     final searchText = _searchController.text;
     if (searchText.isEmpty) {
       _showErrorMessage('Por favor, ingresa un texto para buscar');
@@ -362,21 +362,27 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            // Search and filter bar
-            SearchAndFilterWidget(
-              searchController: _searchController,
-              onSearchChanged: (value) {
-                ref.read(locationSearchProvider.notifier).state = value;
-              },
-              onFilterToggled: _toggleFilter,
-              onSearchSubmitted: _searchLocation,
-              onMenuPressed: _showLocationSelectionDialog,
-            ),
+            // Mapa como capa base (fondo)
+            _buildMapView(),
 
-            // Map view
-            Expanded(child: _buildMapView()),
+            // SearchAndFilterWidget superpuesto en la parte superior
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SearchAndFilterWidget(
+                searchController: _searchController,
+                onSearchChanged: (value) {
+                  ref.read(locationSearchProvider.notifier).state = value;
+                },
+                onFilterToggled: _toggleFilter,
+                onSearchSubmitted:
+                    () => _searchLocation(_searchController.text),
+                onMenuPressed: _showLocationSelectionDialog,
+              ),
+            ),
           ],
         ),
       ),
