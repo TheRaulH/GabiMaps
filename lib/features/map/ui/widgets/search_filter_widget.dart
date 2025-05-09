@@ -46,11 +46,11 @@ class SearchAndFilterWidget extends ConsumerWidget {
               Expanded(
                 child: Container( 
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black,
+                        color: Colors.black12,
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -114,7 +114,7 @@ class SearchAndFilterWidget extends ConsumerWidget {
                   selected: isSelected,
                   onSelected: (_) => onFilterToggled(filter),
                   backgroundColor:
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                      Theme.of(context).colorScheme.surface,
                   selectedColor:
                       Theme.of(context).colorScheme.secondaryContainer,
                   labelStyle: TextStyle(
