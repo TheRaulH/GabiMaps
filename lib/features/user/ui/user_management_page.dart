@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gabimaps/features/user/data/user_model.dart';
-import 'package:gabimaps/features/user/providers/user_provider.dart';
+import 'package:gabimaps/features/user/data/user_model.dart'; 
 
 class UserManagementPage extends ConsumerWidget {
   const UserManagementPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final users = ref.watch(userListProvider);
+  Widget build(BuildContext context, WidgetRef ref) { 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -16,128 +14,11 @@ class UserManagementPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text('Gestión de Usuarios', style: textTheme.headlineSmall),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.refresh(userListProvider),
-            tooltip: 'Actualizar lista',
-          ),
-        ],
+         
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Card(
-          color: Colors.transparent,
-          
-           
-          child:
-              users.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            
-                            Text(
-                              'Usuarios',
-                              style: textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            SizedBox(
-                              width: 200,
-                              child: SearchBar(
-                                hintText: 'Buscar usuarios',
-                                leading: const Icon(Icons.search),
-                                elevation: WidgetStateProperty.all(0),
-                                shape: WidgetStateProperty.all(
-                                  const StadiumBorder(),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 1),
-                      Expanded(
-                        child: ListView.separated(
-                          itemCount: users.length,
-                          separatorBuilder:
-                              (context, index) => const Divider(
-                                height: 1,
-                                indent: 16,
-                                endIndent: 16,
-                              ),
-                          itemBuilder: (context, index) {
-                            final user = users[index];
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundImage:
-                                    user.photoURL != null
-                                        ? NetworkImage(user.photoURL!)
-                                        : null,
-                                child:
-                                    user.photoURL == null
-                                        ? Text(
-                                          user.nombre?.substring(0, 1) ?? '?',
-                                        )
-                                        : null,
-                              ),
-                              title: Text(
-                                '${user.nombre ?? ''} ${user.apellido ?? ''}',
-                                style: textTheme.bodyLarge,
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(user.email),
-                                  const SizedBox(height: 4),
-                                  Chip(
-                                    label: Text(
-                                      user.rol.toUpperCase(),
-                                      style: textTheme.labelSmall?.copyWith(
-                                        color: colorScheme.onPrimaryContainer,
-                                      ),
-                                    ),
-                                    backgroundColor:
-                                        user.rol == 'admin'
-                                            ? colorScheme.primaryContainer
-                                            : user.rol == 'institutional'
-                                            ? colorScheme.secondaryContainer
-                                            : colorScheme.tertiaryContainer,
-                                    shape: const StadiumBorder(),
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                ],
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined),
-                                    onPressed: () => _showEditDialog(ref, user),
-                                    tooltip: 'Editar usuario',
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline),
-                                    onPressed:
-                                        () =>
-                                            _confirmDelete(ref, context, user),
-                                    tooltip: 'Eliminar usuario',
-                                  ),
-                                ],
-                              ),
-                              onTap: () => _showUserDetails(context, user),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-        ),
+         
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddDialog(ref, context),
@@ -170,22 +51,7 @@ class UserManagementPage extends ConsumerWidget {
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Cancelar'),
               ),
-              TextButton(
-                onPressed: () {
-                  ref.read(userListProvider.notifier).deleteUser(user.uid);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${user.nombre} eliminado'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Eliminar',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
+               
             ],
           ),
     );
@@ -478,7 +344,6 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
                         : _direccionController.text,
               );
 
-              await ref.read(userListProvider.notifier).updateUser(newUser);
               if (mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(

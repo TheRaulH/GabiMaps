@@ -1,10 +1,9 @@
 // settings_page.dart
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/app/config/app_routes.dart';
-import 'package:gabimaps/features/user/data/user_model.dart';
-import 'package:gabimaps/features/auth/providers/auth_provider.dart';
-import 'package:gabimaps/features/user/providers/user_provider.dart';
+import 'package:gabimaps/features/user/data/user_model.dart';  
 import 'package:gabimaps/features/user/ui/profile_screen.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -14,13 +13,12 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userState = ref.watch(userProvider);
-    final user = userState is UserLoaded ? userState.user : null;
+      
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     //funcion para traer el logout de auth provider
-    final auth = ref.read(authProvider.notifier);
+    final auth = ref.read(AuthProvider as ProviderListenable);
     //funcion para cerrar sesion
     void logout() {
       auth.logout();
@@ -42,26 +40,10 @@ class SettingsPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Tarjeta de perfil del usuario
-              _buildUserProfileCard(context, user, colorScheme),
+              // Tarjeta de perfil del usuario 
               const SizedBox(height: 24),
 
-              // Sección de perfil
-              _buildSection(context, 'Perfil', [
-                _buildActionButton(
-                  context,
-                  'Editar perfil',
-                  Icons.edit,
-                  colorScheme.primary,
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const UserProfilePage(),
-                    ),
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 16),
+               
 
               // Sección de permisos
               _buildSection(context, 'Permisos', [
@@ -100,8 +82,7 @@ class SettingsPage extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Sección de administrador (solo visible para administradores)
-              if (user?.rol == 'admin')
-                _buildAdminSection(context, colorScheme),
+            
 
               const SizedBox(height: 24),
 
@@ -499,7 +480,9 @@ class SettingsPage extends ConsumerWidget {
                   Navigator.pop(context);
 
                   // Ejecutar logout usando el authProvider
-                  await ref.read(authProvider.notifier).logout();
+                  final auth = ref.read(AuthProvider as ProviderListenable);
+                  await auth.logout();
+                   
 
                   // Navegar a la pantalla de login y eliminar todas las rutas anteriores
                   Navigator.of(
