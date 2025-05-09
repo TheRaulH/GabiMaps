@@ -1,19 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gabimaps/layout/main_app.dart';
-import '../features/auth/providers/auth_provider.dart';
-import '../features/auth/ui/login_screen.dart';
-
-// Provider para controlar la animación del splash
-final splashProvider = StateNotifierProvider<SplashNotifier, bool>((ref) {
-  return SplashNotifier();
-});
-
-class SplashNotifier extends StateNotifier<bool> {
-  SplashNotifier() : super(true);
-
-  void hideSplash() => state = false;
-}
+import 'package:gabimaps/app/config/app_routes.dart';
+import 'package:gabimaps/features/auth/providers/auth_providers.dart';
+import 'package:gabimaps/features/user/providers/user_providers.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -27,11 +16,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  bool _animationCompleted = false;
+  bool _navigated = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
 
+    // Iniciar el proceso de verificación después de que las animaciones hayan empezado
+    _controller.forward().then((_) {
+      if (mounted) {
+        setState(() => _animationCompleted = true);
+        _checkUserStatus();
+      }
+    });
+  }
+
+  void _initializeAnimations() {
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2500),
@@ -50,12 +52,41 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
       ),
     );
+  }
 
-    _controller.forward();
+  Future<void> _checkUserStatus() async {
+    if (_navigated) return;
+    _navigated = true;
 
-    // Temporizador para mostrar el contenido principal después de la animación
-    Future.delayed(const Duration(milliseconds: 3000), () {
-      ref.read(splashProvider.notifier).hideSplash();
+    final authUser = ref.read(authStateProvider).value;
+
+    if (authUser == null) {
+      // No hay usuario autenticado
+      _navigate(AppRoutes.login);
+      return;
+    }
+
+    final uid = authUser.uid;
+    final userExists =
+        await ref
+                .read(userOperationProvider(UserOperationType.userExists))
+                .execute(uid: uid)
+            as bool;
+
+    if (userExists) {
+      // Usuario autenticado y tiene documento en Firestore
+      _navigate(AppRoutes.mainapp);
+    } else {
+      // Usuario autenticado pero no tiene datos extendidos
+      _navigate(AppRoutes.register);
+    }
+  }
+
+  void _navigate(String route) {
+    if (!mounted) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pushReplacementNamed(route);
     });
   }
 
@@ -67,9 +98,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final showSplash = ref.watch(splashProvider);
-    final user = ref.watch(authProvider);
-
     return Scaffold(
       backgroundColor: const Color.fromRGBO(20, 1, 127, 1),
       body: Container(
@@ -78,41 +106,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.fromRGBO(20, 1, 127, 1), // Color de inicio del degradado
-              Colors.purple, // Otro color para el degradado
-              Colors.deepPurpleAccent, // Un tercer color (opcional)
+              Color.fromRGBO(20, 1, 127, 1),
+              Colors.purple,
+              Colors.deepPurpleAccent,
             ],
           ),
         ),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 500),
-          child:
-              showSplash
-                  ? _SplashLoading(
-                    fadeAnimation: _fadeAnimation,
-                    scaleAnimation: _scaleAnimation,
-                  )
-                  : _MainContent(user: user),
+        child: Center(
+          child: _SplashLoading(
+            fadeAnimation: _fadeAnimation,
+            scaleAnimation: _scaleAnimation,
+          ),
         ),
       ),
     );
-  }
-}
-
-class _MainContent extends StatelessWidget {
-  final dynamic user;
-
-  const _MainContent({required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    // 👤 Sesión activa
-    if (user != null) {
-      return const MainApp();
-    }
-
-    // ❌ No autenticado
-    return LoginScreen();
   }
 }
 
@@ -133,7 +140,6 @@ class _SplashLoading extends StatelessWidget {
         return Opacity(
           opacity: fadeAnimation.value,
           child: Center(
-            // Wrap the Column with Center
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -158,42 +164,26 @@ class _SplashLoading extends StatelessWidget {
   }
 
   Widget _buildLoadingIndicator() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 1500),
-      builder: (context, value, child) {
-        return SizedBox(
-          width: 60,
-          height: 60,
-          child: CircularProgressIndicator(
-            value: null, // Indicador indeterminado
-            strokeWidth: 4.0,
-            color: Colors.white.withOpacity(0.8),
-          ),
-        );
-      },
+    return SizedBox(
+      width: 60,
+      height: 60,
+      child: CircularProgressIndicator(
+        value: null,
+        strokeWidth: 4.0,
+        color: Colors.white.withOpacity(0.8),
+      ),
     );
   }
 
   Widget _buildAppName() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 1000),
-      curve: Curves.easeInOut,
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: const Text(
-            'GabiMaps',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
-          ),
-        );
-      },
+    return const Text(
+      'GabiMaps',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.2,
+      ),
     );
   }
 }
