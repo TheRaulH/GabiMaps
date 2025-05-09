@@ -1,22 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gabimaps/features/user/data/user.dart';
 
-class UserModel extends User {
+class UserModel {
+  final String uid;
+  final String? nombre;
+  final String? apellido;
+  final String email;
+  final String rol;
+  final List<String>? facultad;
+  final String? carrera;
+  final DateTime? fechaRegistro;
+  final String? telefono;
+  final String? direccion;
+  final String? photoURL;
+
   UserModel({
-    required super.uid,
-    super.nombre,
-    super.apellido,
-    required super.email,
-    required super.rol,
-    super.facultad,
-    super.carrera,
-    super.fechaRegistro,
-    super.telefono,
-    super.direccion,
-    super.photoURL,
-  });    
+    required this.uid,
+    this.nombre,
+    this.apellido,
+    required this.email,
+    required this.rol,
+    this.facultad,
+    this.carrera,
+    this.fechaRegistro,
+    this.telefono,
+    this.direccion,
+    this.photoURL,
+  });
 
-    factory UserModel.fromFirestore(Map<String, dynamic> data, String uid) {
+  // Método para crear un UserModel desde un documento de Firestore
+  factory UserModel.fromFirestore(Map<String, dynamic> data, String uid) {
     return UserModel(
       uid: uid,
       nombre: data['nombre'],
@@ -25,7 +37,8 @@ class UserModel extends User {
       rol: data['rol'] ?? 'usuario',
       facultad:
           (data['facultad'] as List<dynamic>?)
-              ?.cast<String>(), // Manejo de lista nullable
+              ?.map((item) => item.toString())
+              .toList(),
       carrera: data['carrera'],
       fechaRegistro:
           data['fechaRegistro'] != null
@@ -37,7 +50,7 @@ class UserModel extends User {
     );
   }
 
-  // Método para convertir un User a un mapa para Firestore
+  // Método para convertir un UserModel a un mapa para Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'nombre': nombre,
@@ -46,14 +59,40 @@ class UserModel extends User {
       'rol': rol,
       'facultad': facultad,
       'carrera': carrera,
-      'fechaRegistro': fechaRegistro,
+      'fechaRegistro':
+          fechaRegistro != null ? Timestamp.fromDate(fechaRegistro!) : null,
       'telefono': telefono,
       'direccion': direccion,
       'photoURL': photoURL,
     };
   }
+
+  // Método para copiar un UserModel con cambios
+  UserModel copyWith({
+    String? uid,
+    String? nombre,
+    String? apellido,
+    String? email,
+    String? rol,
+    List<String>? facultad,
+    String? carrera,
+    DateTime? fechaRegistro,
+    String? telefono,
+    String? direccion,
+    String? photoURL,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      nombre: nombre ?? this.nombre,
+      apellido: apellido ?? this.apellido,
+      email: email ?? this.email,
+      rol: rol ?? this.rol,
+      facultad: facultad ?? this.facultad,
+      carrera: carrera ?? this.carrera,
+      fechaRegistro: fechaRegistro ?? this.fechaRegistro,
+      telefono: telefono ?? this.telefono,
+      direccion: direccion ?? this.direccion,
+      photoURL: photoURL ?? this.photoURL,
+    );
   }
-
-  // Método para crear un User desde un documento de Firestore
-  
-
+}
