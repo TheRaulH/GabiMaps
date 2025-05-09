@@ -1,73 +1,132 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gabimaps/layout/main_app.dart'
-    show MainApp;
-import '../providers/auth_provider.dart';
-import 'register_screen.dart';
+import 'package:gabimaps/app/config/app_routes.dart';
+import 'package:gabimaps/features/auth/providers/auth_providers.dart'; 
 
-class LoginScreen extends ConsumerWidget {
-  LoginScreen({super.key});
-
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+class LoginScreen extends ConsumerStatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final auth = ref.read(authProvider.notifier);
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
 
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  String _email = '';
+  String _password = '';
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      await ref
+          .read(authOperationProvider(AuthOperationType.signInWithEmail))
+          .execute(email: _email, password: _password);
+
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.mainapp);
+      } else {
+        // Si el usuario no se pudo autenticar, muestra un mensaje de error
+        setState(
+          () => _error = 'Error al iniciar sesión. Verifica tus credenciales.',
+        );
+      }
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      await ref
+          .read(authOperationProvider(AuthOperationType.signInWithGoogle))
+          .execute();
+
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      }
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: false,title: const Text("Login"),centerTitle: true,),
+      appBar: AppBar(title: const Text("Iniciar Sesión")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: "Email"),
-            ),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(labelText: "Contraseña"),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                await auth.login(emailController.text, passwordController.text);
-                if (context.mounted) {
-                  // ✅ Verifica si el contexto sigue montado antes de navegar
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MainApp()),
-                  );
-                }
-              },
-              child: const Text("Iniciar Sesión"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await auth.loginWithGoogle();
-                if (context.mounted) {
-                  // ✅ Verifica si el contexto sigue montado antes de navegar
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MainApp()),
-                  );
-                }
-              },
-              child: const Text("Iniciar con Google"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),
-                );
-              },
-              child: const Text("Crear cuenta"),
-            ),
-          ],
-        ),
+        child:
+            _loading
+                ? const Center(child: CircularProgressIndicator())
+                : Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      if (_error != null)
+                        Text(
+                          _error!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        onSaved: (value) => _email = value!.trim(),
+                        validator:
+                            (value) =>
+                                value!.isEmpty ? 'Ingresa un email' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Contraseña',
+                        ),
+                        obscureText: true,
+                        onSaved: (value) => _password = value!.trim(),
+                        validator:
+                            (value) =>
+                                value!.isEmpty
+                                    ? 'Ingresa una contraseña'
+                                    : null,
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _login,
+                        child: const Text("Iniciar Sesión"),
+                      ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _loginWithGoogle,
+                        icon: const Icon(Icons.login),
+                        label: const Text("Continuar con Google"),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed:
+                            () => Navigator.of(
+                              context,
+                            ).pushNamed(AppRoutes.resetPassword),
+                        child: const Text("¿Olvidaste tu contraseña?"),
+                      ),
+                    ],
+                  ),
+                ),
       ),
     );
   }
