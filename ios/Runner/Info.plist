@@ -69,5 +69,9 @@
 	<string>Esta aplicación necesita acceder a tu ubicación cuando está en uso.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Esta aplicación necesita acceder a tu ubicación en todo momento.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Necesitamos acceso a tu galería para cambiar tu foto de perfil</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Necesitamos acceso a tu cámara para tomar una foto de perfil</string>
 </dict>
 </plist>
