@@ -57,6 +57,16 @@ class AuthOperation {
         }
         await _repository.sendPasswordReset(email: email);
         return null;
+
+      case AuthOperationType.registerWithEmail:
+        if (email == null || password == null) {
+          throw ArgumentError('Email and password are required');
+        }
+        final userModel = await _repository.registerWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        return _repository.currentUser;
     }
   }
 }
@@ -67,4 +77,5 @@ enum AuthOperationType {
   signInWithGoogle,
   signOut,
   passwordReset,
+  registerWithEmail,
 }

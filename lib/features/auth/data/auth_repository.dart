@@ -76,6 +76,26 @@ class AuthRepository {
     }
   }
 
+  Future<UserModel> registerWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Crear documento en Firestore
+      await _createUserInFirestore(userCredential.user!);
+
+      return await _getUserData(userCredential.user!.uid);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
+  }
+
+
   // Enviar correo de recuperación de contraseña
   Future<void> sendPasswordReset({required String email}) async {
     try {
