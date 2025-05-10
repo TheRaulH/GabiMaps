@@ -106,9 +106,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.fromRGBO(20, 1, 127, 1),
-              Colors.purple,
-              Colors.deepPurpleAccent,
+              Colors.red,
+              Color.fromRGBO(136, 0, 0, 1),
+              Colors.black,
+              Color.fromRGBO(0, 48, 95, 1),
+              Color.fromRGBO(0, 102, 204, 1),
+              
+              
             ],
           ),
         ),
