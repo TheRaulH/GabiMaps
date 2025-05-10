@@ -28,7 +28,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _controller.forward().then((_) {
       if (mounted) {
         setState(() => _animationCompleted = true);
-        _checkUserStatus();
+         
       }
     });
   }
@@ -55,10 +55,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _checkUserStatus() async {
-    if (_navigated) return;
-    _navigated = true;
+    if (_navigated || !_animationCompleted) return;
 
-    final authUser = ref.read(authStateProvider).value;
+    final authState = ref.watch(authStateProvider);
+
+    if (authState.isLoading) return;
+    if (authState.hasError) {
+      // Manejo opcional de errores
+      _navigate(AppRoutes.login);
+      return;
+    }
+
+    final authUser = authState.value; 
 
     if (authUser == null) {
       // No hay usuario autenticado
@@ -80,6 +88,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       // Usuario autenticado pero no tiene datos extendidos
       _navigate(AppRoutes.register);
     }
+    _navigated = true;
   }
 
   void _navigate(String route) {
@@ -98,6 +107,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_animationCompleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkUserStatus();
+      });
+    }
     return Scaffold(
       backgroundColor: const Color.fromRGBO(20, 1, 127, 1),
       body: Container(
