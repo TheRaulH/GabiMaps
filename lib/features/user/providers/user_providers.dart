@@ -1,11 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gabimaps/features/auth/providers/auth_providers.dart';
+import 'package:gabimaps/features/auth/providers/auth_providers.dart'; 
 import '../data/user_repository.dart';
 import '../data/user_model.dart';
 
 // Provider para la instancia de UserRepository
 final userRepositoryProvider = Provider<UserRepository>((ref) {
-  return UserRepository();
+  return UserRepository(
+    firestore: FirebaseFirestore.instance,
+    storage: FirebaseStorage.instance,
+  );
 });
 
 // Provider para el usuario actual (UserModel)
@@ -58,7 +63,8 @@ class UserOperation {
       case UserOperationType.updateUser:
         if (user == null) throw ArgumentError('User is required');
         await _repository.updateUser(user);
-        return user;
+        return user;     
+      
     }
   }
 }

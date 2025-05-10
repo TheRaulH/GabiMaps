@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gabimaps/app/config/app_routes.dart';
 import 'package:gabimaps/features/auth/providers/auth_providers.dart';
 import 'package:gabimaps/features/user/data/user_model.dart';
 import 'package:gabimaps/features/user/providers/user_providers.dart';
@@ -9,21 +10,39 @@ import 'package:gabimaps/features/user/ui/profile_detail_screen.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    try {
+      // Ejecutar logout
+      await ref
+          .read(authOperationProvider(AuthOperationType.signOut))
+          .execute();
+
+      // Navegar a login y limpiar el stack de navegación
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.login,
+        (Route<dynamic> route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al cerrar sesión: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(userModelProvider);
 
     return Scaffold(
+      //quitar boton back en la appBar
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+
         title: const Text('Mi Perfil'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await ref
-                  .read(authOperationProvider(AuthOperationType.signOut))
-                  .execute();
-            },
+            onPressed: () => _logout(context, ref), // Usar la función de logout
           ),
         ],
       ),

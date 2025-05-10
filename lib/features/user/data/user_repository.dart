@@ -1,11 +1,20 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gabimaps/features/user/data/user_model.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+
+
 
 class UserRepository {
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
-  UserRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  UserRepository({FirebaseFirestore? firestore, FirebaseStorage? storage})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _storage = storage ?? FirebaseStorage.instance;
+
 
   // Crear un nuevo usuario en Firestore
   Future<void> createUser(UserModel user) async {
@@ -56,6 +65,30 @@ class UserRepository {
           .update(user.toFirestore());
     } catch (e) {
       throw Exception('Error al actualizar usuario: ${e.toString()}');
+    }
+  }
+
+  //Actualizar foto de perfil
+  Future<void> updateProfileImage(String uid, String imageUrl) async {
+    await _firestore.collection('users').doc(uid).update({
+      'photoURL': imageUrl,
+    });
+  }
+
+  Future<String> uploadProfileImage(String uid, String filePath) async {
+    try {
+      print('Subiendo imagen de perfil para el usuario: $uid');
+      print('Ruta del archivo: $filePath');
+      final ref = _storage.ref('profile_images/$uid');
+      final uploadTask = ref.putFile(File(filePath));
+      final snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
+    } on FirebaseException catch (e) {
+      debugPrint('Firebase Storage Error: ${e.code} - ${e.message}');
+      throw Exception('Error al subir la imagen: ${e.message}');
+    } catch (e) {
+      debugPrint('Upload Error: $e');
+      throw Exception('Error inesperado al subir la imagen');
     }
   }
 
