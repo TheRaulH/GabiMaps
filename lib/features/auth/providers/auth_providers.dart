@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../data/auth_repository.dart';
@@ -44,9 +45,11 @@ class AuthOperation {
           email: email,
           password: password,
         );
+        debugPrint('UserModel: $userModel');
         return _repository.currentUser;
       case AuthOperationType.signInWithGoogle:
         final userModel = await _repository.signInWithGoogle();
+        debugPrint('UserModel: $userModel');
         return _repository.currentUser;
       case AuthOperationType.signOut:
         await _repository.signOut();
@@ -66,6 +69,7 @@ class AuthOperation {
           email: email,
           password: password,
         );
+        debugPrint('UserModel: $userModel');
         return _repository.currentUser;
     }
   }
