@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "514459263466",
-    "project_id": "gabimaps-ad5d6",
-    "storage_bucket": "gabimaps-ad5d6.firebasestorage.app"
+    "project_number": "262425413401",
+    "project_id": "gabimaps-3f47b",
+    "storage_bucket": "gabimaps-3f47b.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:514459263466:android:fa495253312abdc0f85293",
+        "mobilesdk_app_id": "1:262425413401:android:9f796102c2e65d74a36788",
         "android_client_info": {
           "package_name": "com.example.gabimaps"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCTyVJtRKoVp2RUIBKDSACwqev27hKzL9Y"
+          "current_key": "AIzaSyCchy2mg9s4FsnbAvm6K14kBTn0KkVnaOs"
         }
       ],
       "services": {
