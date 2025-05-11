@@ -23,8 +23,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late final TextEditingController _telefonoController;
   late final TextEditingController _direccionController;
   late final TextEditingController _carreraController;
-  File? _imageFile;
-  String? _tempImageUrl;
+  File? _imageFile; 
 
   Future<void> _handleImageChanged(String imagePath) async {
     setState(() {
