@@ -267,9 +267,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 if (isDarkMode)
                   TileLayer(
                     urlTemplate:
-                        'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
-                    subdomains: const ['a', 'b', 'c'],
-                    userAgentPackageName: 'com.example.app',
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    tileBuilder: _darkModeTileBuilder,
                   )
                 else
                   TileLayer(
@@ -345,6 +344,22 @@ class _MapScreenState extends ConsumerState<MapScreen>
           ],
         );
       },
+    );
+  }
+
+  Widget _darkModeTileBuilder(
+    BuildContext context,
+    Widget tileWidget,
+    TileImage tile,
+  ) {
+    return ColorFiltered(
+      colorFilter: const ColorFilter.matrix(<double>[
+        -0.2126, -0.7152, -0.0722, 0, 255, // Red channel
+        -0.2126, -0.7152, -0.0722, 0, 255, // Green channel
+        -0.2126, -0.7152, -0.0722, 0, 255, // Blue channel
+        0, 0, 0, 1, 0, // Alpha channel
+      ]),
+      child: tileWidget,
     );
   }
 
