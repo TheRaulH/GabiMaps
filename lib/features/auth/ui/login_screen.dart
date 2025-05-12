@@ -66,7 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .execute();
 
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+        Navigator.of(context).pushReplacementNamed(AppRoutes.mainapp);
       }
     } catch (e) {
       setState(
