@@ -103,7 +103,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             "GabiMaps",
                             style: theme.textTheme.headlineLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: theme.primaryColor,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                         ),
@@ -250,7 +250,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ElevatedButton(
                                 onPressed: _register,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: theme.primaryColor,
+                                  backgroundColor: theme.colorScheme.primary,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 16,
@@ -260,11 +260,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   ),
                                   minimumSize: const Size(double.infinity, 50),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   "REGISTRARME",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
+                                    color: theme.colorScheme.onPrimary,
                                   ),
                                 ),
                               ),

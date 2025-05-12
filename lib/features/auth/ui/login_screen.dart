@@ -102,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             "GabiMaps",
                             style: theme.textTheme.headlineLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: theme.primaryColorDark,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                         ),
@@ -213,7 +213,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ).pushNamed(AppRoutes.resetPassword),
                                   child: Text(
                                     '¿Olvidaste tu contraseña?',
-                                    style: TextStyle(color: theme.primaryColor),
+                                    style: TextStyle(
+                                      color: theme.colorScheme.tertiary,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -222,7 +224,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ElevatedButton(
                                 onPressed: _login,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: theme.primaryColorDark,
+                                  backgroundColor: theme.colorScheme.secondary,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 16,
@@ -232,11 +234,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                   minimumSize: const Size(double.infinity, 50),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   "INICIAR SESIÓN",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
+                                    color: theme.colorScheme.onSecondary,
 
                                   ),
                                 ),
@@ -312,7 +315,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     child: Text(
                                       'Regístrate',
                                       style: TextStyle(
-                                        color: theme.primaryColorDark,
+                                        color: theme.colorScheme.tertiary,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
