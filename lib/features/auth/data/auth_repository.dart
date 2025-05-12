@@ -114,11 +114,14 @@ class AuthRepository {
 
   // Crear usuario en Firestore
   Future<void> _createUserInFirestore(User user) async {
+    //agregar el nombre del email antes de @ como nombre del usermodel
+    final emailParts = user.email?.split('@');
+
     final userModel = UserModel(
       uid: user.uid,
       email: user.email ?? '',
       rol: 'usuario', // Rol por defecto
-      nombre: user.displayName?.split(' ').first,
+      nombre: user.displayName?.split(' ').first ?? emailParts?.first ?? '',
       apellido: user.displayName?.split(' ').last,
       photoURL: user.photoURL,
       fechaRegistro: DateTime.now(),
