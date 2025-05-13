@@ -40,6 +40,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   late Stream<Position> _locationStream; // Stream para la ubicación actual
 
+  Timer? _debounce;
+
+
   // Constants
   static const LatLng _initialPosition = LatLng(
     -17.777438043503892,
@@ -96,7 +99,12 @@ class _MapScreenState extends ConsumerState<MapScreen>
   }
 
   void _onSearchChanged() {
-    ref.read(locationSearchProvider.notifier).state = _searchController.text;
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      // do something with query
+      ref.read(locationSearchProvider.notifier).state = _searchController.text;
+    });
+    
   }
 
   Future<void> _getCurrentLocation() async {
@@ -436,6 +444,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
     _searchController.dispose();
     _mapController.dispose();
     _zoomNotifier.dispose();
+    _debounce?.cancel();
+
     super.dispose();
   }
 }
