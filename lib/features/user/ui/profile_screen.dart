@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/app/config/app_routes.dart';
 import 'package:gabimaps/features/auth/providers/auth_providers.dart';
+import 'package:gabimaps/features/map/ui/locations_list_screen.dart';
 import 'package:gabimaps/features/user/data/user_model.dart';
 import 'package:gabimaps/features/user/providers/user_providers.dart';
 import 'package:gabimaps/features/user/ui/edit_profile_screen.dart';
 import 'package:gabimaps/features/user/ui/profile_detail_screen.dart';
+import 'package:gabimaps/features/user/ui/users_list_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -27,6 +29,22 @@ class ProfileScreen extends ConsumerWidget {
         context,
       ).showSnackBar(SnackBar(content: Text('Error al cerrar sesión: $e')));
     }
+  }
+
+  // Método para navegar a la pantalla de administración de usuarios
+  void _navigateToUserAdmin(BuildContext context, UserModel user) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => UsersListScreen()),
+    );
+  }
+
+  // Método para navegar a la pantalla de lista de ubicaciones
+  void _navigateToLocationsList(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LocationsListScreen()),
+    );
   }
 
   @override
@@ -85,6 +103,18 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                           ),
                     ),
+                    _ProfileOption(
+                      icon: Icons.security,
+                      title: 'Administrar Usuarios',
+                      onTap: () => _navigateToUserAdmin(context, user),
+                    ),
+                    //getion de ubicaciones de la aplicacion
+                    _ProfileOption(
+                      icon: Icons.location_on,
+                      title: 'Ubicaciones',
+                      onTap: () => _navigateToLocationsList(context),
+                    ),
+
                     _ProfileOption(
                       icon: Icons.notifications,
                       title: 'Notificaciones',
