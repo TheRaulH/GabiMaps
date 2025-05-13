@@ -440,13 +440,13 @@ class _LocationsListScreenState extends ConsumerState<LocationsListScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         'Capa ${location.layer}',
                         style: TextStyle(
-                          color: Theme.of(context).primaryColor,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -522,12 +522,16 @@ class _LocationsListScreenState extends ConsumerState<LocationsListScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.grey[200],
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 category,
                                 style: const TextStyle(fontSize: 12),
+                                
                               ),
                             );
                           }).toList(),
