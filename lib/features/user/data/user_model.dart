@@ -6,12 +6,14 @@ class UserModel {
   final String? apellido;
   final String email;
   final String rol;
-  final List<String>? facultad;
+  final String? facultad;
   final String? carrera;
   final DateTime? fechaRegistro;
   final String? telefono;
   final String? direccion;
   final String? photoURL;
+  final bool? isActive;
+
 
   UserModel({
     required this.uid,
@@ -25,6 +27,8 @@ class UserModel {
     this.telefono,
     this.direccion,
     this.photoURL,
+    this.isActive = true,
+
   });
 
   // Método para crear un UserModel desde un documento de Firestore
@@ -35,10 +39,7 @@ class UserModel {
       apellido: data['apellido'],
       email: data['email'] ?? '',
       rol: data['rol'] ?? 'usuario',
-      facultad:
-          (data['facultad'] as List<dynamic>?)
-              ?.map((item) => item.toString())
-              .toList(),
+      facultad: data['facultad'],
       carrera: data['carrera'],
       fechaRegistro:
           data['fechaRegistro'] != null
@@ -47,6 +48,7 @@ class UserModel {
       telefono: data['telefono'],
       direccion: data['direccion'],
       photoURL: data['photoURL'],
+      isActive: data['isActive'] ?? true,
     );
   }
 
@@ -64,6 +66,7 @@ class UserModel {
       'telefono': telefono,
       'direccion': direccion,
       'photoURL': photoURL,
+      'isActive': isActive,
     };
   }
 
@@ -74,12 +77,13 @@ class UserModel {
     String? apellido,
     String? email,
     String? rol,
-    List<String>? facultad,
+    String? facultad,
     String? carrera,
     DateTime? fechaRegistro,
     String? telefono,
     String? direccion,
     String? photoURL,
+    bool? isActive,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -93,6 +97,7 @@ class UserModel {
       telefono: telefono ?? this.telefono,
       direccion: direccion ?? this.direccion,
       photoURL: photoURL ?? this.photoURL,
+      isActive: isActive ?? this.isActive,
     );
   }
 }

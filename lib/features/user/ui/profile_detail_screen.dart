@@ -38,7 +38,7 @@ class ProfileDetailScreen extends StatelessWidget {
             _buildDetailItem('Carrera', user.carrera ?? 'No especificada'),
             _buildDetailItem(
               'Facultad',
-              user.facultad?.join(', ') ?? 'No especificada',
+              user.facultad ?? 'No especificada',
             ),
             _buildDetailItem(
               'Fecha de Registro',

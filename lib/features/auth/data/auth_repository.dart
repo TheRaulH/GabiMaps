@@ -120,7 +120,7 @@ class AuthRepository {
     final userModel = UserModel(
       uid: user.uid,
       email: user.email ?? '',
-      rol: 'usuario', // Rol por defecto
+      rol: 'user', // Rol por defecto
       nombre: user.displayName?.split(' ').first ?? emailParts?.first ?? '',
       apellido: user.displayName?.split(' ').last,
       photoURL: user.photoURL,
