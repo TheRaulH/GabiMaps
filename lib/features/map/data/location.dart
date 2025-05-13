@@ -29,27 +29,31 @@ class Location {
     this.updatedAt,
   });
 
+  // Mejorar el manejo de fechas y valores nulos
   factory Location.fromMap(Map<String, dynamic> data, String documentId) {
     return Location(
       id: documentId,
-      name: data['name'] ?? '',
+      name: data['name'] ?? 'Sin nombre',
       position: data['position'] as GeoPoint? ?? const GeoPoint(0.0, 0.0),
       layer: data['layer'] as int? ?? 0,
-      description: data['description'],
-      address: data['address'],
-      categories: (data['categories'] as List<dynamic>?)?.cast<String>(),
-      imageUrl: data['imageUrl'],
-      rating: (data['rating'] as num?)?.toDouble(),
+      description: data['description'] as String?,
+      address: data['address'] as String?,
+      categories:
+          (data['categories'] as List?)?.map((e) => e.toString()).toList(),
+      imageUrl: data['imageUrl'] as String?,
+      rating: data['rating']?.toDouble(),
       reviewCount: data['reviewCount'] as int?,
-      createdAt:
-          (data['createdAt'] as num?) != null
-              ? DateTime.fromMillisecondsSinceEpoch(data['createdAt'] as int)
-              : null,
-      updatedAt:
-          (data['updatedAt'] as num?) != null
-              ? DateTime.fromMillisecondsSinceEpoch(data['updatedAt'] as int)
-              : null,
+      createdAt: _parseTimestamp(data['createdAt']),
+      updatedAt: _parseTimestamp(data['updatedAt']),
     );
+  }
+
+  static DateTime? _parseTimestamp(dynamic timestamp) {
+    if (timestamp == null) return null;
+    if (timestamp is Timestamp) return timestamp.toDate();
+    if (timestamp is num)
+      return DateTime.fromMillisecondsSinceEpoch(timestamp as int);
+    return null;
   }
 
   Map<String, dynamic> toMap() {

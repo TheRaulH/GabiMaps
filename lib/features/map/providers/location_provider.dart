@@ -1,7 +1,8 @@
 // location_provider.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
-import 'package:gabimaps/features/map/data/location.dart'; // Asegúrate de tener la ruta correcta a tu entidad
+import 'package:gabimaps/features/map/data/location.dart';
+import 'package:latlong2/latlong.dart'; // Asegúrate de tener la ruta correcta a tu entidad
 
 // Estados del provider
 abstract class LocationsState {}
@@ -32,6 +33,8 @@ class LocationsNotifier extends StateNotifier<LocationsState> {
 
   Future<void> loadLocations() async {
     try {
+      if (state is LocationsLoading) return; // Evitar recargas innecesarias
+
       state = LocationsLoading();
 
       final snapshot =
@@ -68,9 +71,17 @@ class LocationsNotifier extends StateNotifier<LocationsState> {
           .doc(location.id)
           .update(location.toMap());
 
-      await loadLocations(); // Recargar la lista
+      if (state is LocationsLoaded) {
+        final currentState = state as LocationsLoaded;
+        final updatedLocations =
+            currentState.locations.map((loc) {
+              return loc.id == location.id ? location : loc;
+            }).toList();
+
+        state = LocationsLoaded(updatedLocations);
+      }
     } catch (e) {
-      state = LocationsError('Error al actualizar ubicación: $e');
+      state = LocationsError('Error al actualizar ubicación: ${e.toString()}');
       rethrow;
     }
   }
@@ -189,5 +200,17 @@ final filteredLocationsProvider = Provider<List<Location>>((ref) {
   }
 
   // Si el estado no es LocationsLoaded (cargando, error, etc.), devolvemos lista vacía
+  return [];
+});
+
+// Añadir provider para ubicaciones por capa (layer)
+final locationsByLayerProvider = Provider.family<List<Location>, int>((
+  ref,
+  layer,
+) {
+  final locationsState = ref.watch(locationsProvider);
+  if (locationsState is LocationsLoaded) {
+    return locationsState.locations.where((loc) => loc.layer == layer).toList();
+  }
   return [];
 });
