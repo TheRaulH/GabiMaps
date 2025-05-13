@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/features/map/providers/location_provider.dart';
 import 'package:gabimaps/features/map/ui/widgets/location_details_widget.dart';
 import 'package:gabimaps/features/map/ui/widgets/map_controls_widget.dart';
@@ -8,11 +8,10 @@ import 'package:gabimaps/features/map/ui/widgets/map_markers_widget.dart';
 import 'package:gabimaps/features/map/ui/widgets/search_filter_widget.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:geolocator/geolocator.dart'; 
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map_cache/flutter_map_cache.dart';
+import 'package:gabimaps/features/map/providers/cache_provider.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-
-
-
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -42,6 +41,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   Timer? _debounce;
 
+  final bounds = LatLngBounds(
+    const LatLng(-17.779817462275247, -63.198970197924325), // Suroeste
+    const LatLng(-17.772873585563268, -63.19049146213652), // Noreste
+  );
 
   // Constants
   static const LatLng _initialPosition = LatLng(
@@ -58,7 +61,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   @override
   void initState() {
     super.initState();
- 
+
     _initializeData();
     _setupListeners();
 
@@ -104,7 +107,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
       // do something with query
       ref.read(locationSearchProvider.notifier).state = _searchController.text;
     });
-    
   }
 
   Future<void> _getCurrentLocation() async {
@@ -148,8 +150,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
       _showErrorMessage('Error al obtener la ubicación: $e');
     }
   }
-
- 
 
   void _showErrorMessage(String message) {
     if (mounted) {
@@ -258,9 +258,14 @@ class _MapScreenState extends ConsumerState<MapScreen>
             FlutterMap(
               mapController: _mapController,
               options: MapOptions(
+                keepAlive: true,
+                interactionOptions: const InteractionOptions(
+                  enableMultiFingerGestureRace: true,
+                  flags: ~InteractiveFlag.rotate,
+                ),
                 initialCenter: _currentPosition ?? _initialPosition,
                 initialZoom: _currentZoom,
-                minZoom: 3,
+                minZoom: 15,
                 maxZoom: 20,
                 onPositionChanged: (position, hasGesture) {
                   if (mounted) {
@@ -271,19 +276,43 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 },
               ),
               children: [
+                Consumer(
+                  builder: (context, ref, _) {
+                    final asyncStore = ref.watch(tileCacheProvider);
+                    return asyncStore.when(
+                      data: (store) {
+                        return isDarkMode
+                            ? TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              tileProvider: CachedTileProvider(
+                                store: store,
+                                maxStale: const Duration(days: 365),
+                              ),
+                              tileBuilder: _darkModeTileBuilder,
+                              userAgentPackageName: 'com.example.app',
+                            )
+                            : TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              tileProvider: CachedTileProvider(
+                                store: store,
+                                maxStale: const Duration(days: 365),
+                              ),
+                              userAgentPackageName: 'com.example.app',
+                            );
+                      },
+                      loading:
+                          () =>
+                              const SizedBox(), // o CircularProgressIndicator()
+                      error:
+                          (err, _) => Center(
+                            child: Text('Error al cargar caché: $err'),
+                          ),
+                    );
+                  },
+                ),
 
-                if (isDarkMode)
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    tileBuilder: _darkModeTileBuilder,
-                  )
-                else
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.app',
-                  ),
                 // Capa base (siempre presente)
 
                 // TileLayer(

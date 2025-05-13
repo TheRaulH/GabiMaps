@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/app/config/app_routes.dart';
 import 'package:gabimaps/features/auth/providers/auth_providers.dart';
 
+//Para cachear los tiles de mapa
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gabimaps/features/map/data/tile_precache_service.dart';
+
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -42,7 +46,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             password: _passwordController.text.trim(),
           );
 
+      final prefs = await SharedPreferences.getInstance();
+      final alreadyCached = await TilePrecacheService.isCampusTilesCached();
+
+      if (!alreadyCached) {
+        final progressNotifier = ValueNotifier<PrecachingStatus>(
+          PrecachingStatus(
+            downloadedBytes: 0,
+            totalTiles: 0,
+            completedTiles: 0,
+          ),
+        );
+
+        final precacheFuture =
+            TilePrecacheService.precacheCampusTilesWithProgress(
+              progressNotifier,
+            );
+
+        await showPrecachingProgressDialog(context, progressNotifier);
+
+        await precacheFuture; // terminar precache
+        if (mounted) Navigator.pop(context);
+        await prefs.setBool('campus_tiles_cached', true);
+      }
+
       if (mounted) {
+        print('Login successful');
         Navigator.of(context).pushReplacementNamed(AppRoutes.mainapp);
       }
     } catch (e) {
@@ -240,7 +269,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                     color: theme.colorScheme.onSecondary,
-
                                   ),
                                 ),
                               ),
