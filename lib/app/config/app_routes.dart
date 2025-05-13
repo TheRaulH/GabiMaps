@@ -3,16 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:gabimaps/features/auth/ui/login_screen.dart';
 import 'package:gabimaps/features/auth/ui/reset_password_screen.dart';
 import 'package:gabimaps/features/home/ui/red_social.dart';
-import 'package:gabimaps/features/home/ui/saved.dart';
-import 'package:gabimaps/features/map/ui/location_edit_screen.dart';
+import 'package:gabimaps/features/home/ui/saved.dart'; 
 import 'package:gabimaps/features/user/ui/profile_screen.dart'; 
 import 'package:gabimaps/layout/main_app.dart';
 import 'package:gabimaps/features/map/ui/map_screen.dart';
 import 'package:gabimaps/features/notifications/ui/notifications_screen.dart';
 import 'package:gabimaps/features/map/ui/locations_management_page.dart';
 import '../../features/auth/ui/register_screen.dart'; 
-import '../../layout/splash_screen.dart'; 
-import 'package:gabimaps/features/map/ui/locations_list_screen.dart';  
+import '../../layout/splash_screen.dart';  
 
 class AppRoutes {
   static const String splash = '/splash';
