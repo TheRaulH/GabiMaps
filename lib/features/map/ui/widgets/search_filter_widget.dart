@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gabimaps/app/core/constants.dart';
 import 'package:gabimaps/features/map/providers/location_provider.dart';
 
 class SearchAndFilterWidget extends ConsumerWidget {
@@ -24,16 +25,7 @@ class SearchAndFilterWidget extends ConsumerWidget {
     final selectedFilters = ref.watch(selectedCategoriesProvider);
 
     // Definir la lista de filtros disponibles
-    final List<String> availableFilters = [
-      'Edificio',
-      'Facultad',
-      'Biblioteca',
-      'Cafetería',
-      'Deportes',
-      'Estacionamiento',
-      'Laboratorio',
-      'Aula',
-    ];
+    final List<String> availableFilters = AppConstants.locationCategories;
 
     return Column(
       children: [

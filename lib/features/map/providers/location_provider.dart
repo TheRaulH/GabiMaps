@@ -2,7 +2,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:gabimaps/features/map/data/location.dart';
-import 'package:latlong2/latlong.dart'; // Asegúrate de tener la ruta correcta a tu entidad
 
 // Estados del provider
 abstract class LocationsState {}

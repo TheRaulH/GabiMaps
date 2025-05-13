@@ -665,7 +665,7 @@ class _LocationEditScreenState extends ConsumerState<LocationEditScreen> {
             onTap: (_, point) => _updatePositionFromMap(point),
             onPositionChanged: (position, hasGesture) {
               if (hasGesture) {
-                setState(() => _currentZoom = position.zoom!);
+                setState(() => _currentZoom = position.zoom);
               }
             },
           ),
@@ -739,15 +739,6 @@ class _LocationEditScreenState extends ConsumerState<LocationEditScreen> {
     );
   }
 
-  void _addCategory(String category) {
-    if (category.trim().isNotEmpty) {
-      setState(() {
-        _categories.add(category.trim());
-        _newCategory = '';
-        FocusScope.of(context).unfocus();
-      });
-    }
-  }
 
   String? _validateCoordinate(String? value) {
     if (value?.isEmpty ?? true) return 'Requerido';

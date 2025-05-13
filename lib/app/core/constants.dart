@@ -1,7 +1,7 @@
 class AppConstants {
   static const List<String> locationCategories = [
     'Módulo',
-    'Curichi (punto de encuentro)',
+    'Curichi',
     'Biblioteca',
     'Tienda',
     'Baño',
