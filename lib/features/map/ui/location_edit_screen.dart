@@ -134,8 +134,8 @@ class _LocationEditScreenState extends ConsumerState<LocationEditScreen> {
         body: TabBarView(children: [_buildFormTab(), _buildMapTab()]),
         floatingActionButton: FloatingActionButton(
           onPressed: _saveLocation,
-          child: const Icon(Icons.save),
           tooltip: 'Guardar ubicación',
+          child: const Icon(Icons.save),
         ),
       ),
     );

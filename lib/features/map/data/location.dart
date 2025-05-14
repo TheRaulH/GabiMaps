@@ -51,8 +51,9 @@ class Location {
   static DateTime? _parseTimestamp(dynamic timestamp) {
     if (timestamp == null) return null;
     if (timestamp is Timestamp) return timestamp.toDate();
-    if (timestamp is num)
+    if (timestamp is num) {
       return DateTime.fromMillisecondsSinceEpoch(timestamp as int);
+    }
     return null;
   }
 

@@ -92,8 +92,8 @@ class MapMarkersWidget extends ConsumerWidget {
   }
 
   int _getLayerForZoom(double zoom) {
-    if (zoom <= 16) return 1;
-    if (zoom < 18) return 2;
-    return 3;
+    if (zoom <= 16) return 0;
+    if (zoom < 18) return 1;
+    return 2;
   }
 }
