@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 import 'dart:io';
-import 'package:dio/dio.dart';
 import 'dart:math';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:http_cache_core/http_cache_core.dart';
 import 'package:gabimaps/features/map/data/tile_cache_service.dart';
-import 'package:flutter/material.dart';
 
 class TilePrecacheService {
-  static const List<int> zoomLevels = [17, 18, 19, 20];
+  static const List<int> zoomLevels = [17, 18, 19];
 
   static Future<void> precacheCampusTilesWithProgress(
     ValueNotifier<PrecachingStatus> notifier,
@@ -15,7 +15,6 @@ class TilePrecacheService {
     final dio = Dio();
     final store = await TileCacheService.createStore();
 
-    const zoomLevels = [17, 18, 19];
     const minLat = -17.779817462275247;
     const maxLat = -17.772873585563268;
     const minLng = -63.198970197924325;
@@ -33,6 +32,8 @@ class TilePrecacheService {
       }
     }
 
+    print('🧩 Total tiles to precache: ${tiles.length}');
+
     int downloadedBytes = 0;
     int completedTiles = 0;
 
@@ -42,53 +43,71 @@ class TilePrecacheService {
       completedTiles: 0,
     );
 
+    const batchSize = 10;
+    List<Future<void>> batch = [];
+
     for (final tile in tiles) {
-      final z = tile['z'];
-      final x = tile['x'];
-      final y = tile['y'];
-      final url = 'https://tile.openstreetmap.org/$z/$x/$y.png';
+      batch.add(() async {
+        final z = tile['z'];
+        final x = tile['x'];
+        final y = tile['y'];
+        final url = 'https://tile.openstreetmap.org/$z/$x/$y.png';
 
-      try {
-        final response = await dio.get<List<int>>(
-          url,
-          options: Options(responseType: ResponseType.bytes),
+        try {
+          final response = await dio.get<List<int>>(
+            url,
+            options: Options(
+              responseType: ResponseType.bytes,
+              receiveTimeout: const Duration(seconds: 5),
+              sendTimeout: const Duration(seconds: 5),
+            ),
+          );
+
+          final bytes = Uint8List.fromList(response.data!);
+          downloadedBytes += bytes.length;
+
+          final now = DateTime.now();
+          final cacheResponse = CacheResponse(
+            key: url,
+            url: url,
+            statusCode: 200,
+            content: bytes,
+            date: now,
+            eTag: '',
+            expires: now.add(const Duration(days: 365)),
+            headers: [],
+            lastModified: '',
+            maxStale: now.add(const Duration(days: 365)),
+            priority: CachePriority.normal,
+            cacheControl: CacheControl(),
+            responseDate: now,
+            requestDate: now,
+          );
+
+          await store.set(cacheResponse);
+        } catch (e) {
+          print('⚠️ Error tile $z/$x/$y → $e');
+        }
+
+        completedTiles++;
+        notifier.value = PrecachingStatus(
+          downloadedBytes: downloadedBytes,
+          totalTiles: tiles.length,
+          completedTiles: completedTiles,
         );
-        final bytes = Uint8List.fromList(response.data!);
-        downloadedBytes += bytes.length;
+      }());
 
-        final now = DateTime.now();
-        final cacheResponse = CacheResponse(
-          key: url,
-          url: url,
-          statusCode: 200,
-          content: bytes,
-          date: now,
-          eTag: '',
-          expires: now.add(const Duration(days: 365)),
-          headers: [],
-          lastModified: '',
-          maxStale: now.add(const Duration(days: 365)),
-          priority: CachePriority.normal,
-          cacheControl: CacheControl(),
-          responseDate: now,
-          requestDate: now,
-        );
-
-        await store.set(cacheResponse);
-      } catch (_) {
-        // ignoramos errores de red
+      if (batch.length >= batchSize) {
+        await Future.wait(batch);
+        batch.clear();
       }
+    }
 
-      completedTiles++;
-      notifier.value = PrecachingStatus(
-        downloadedBytes: downloadedBytes,
-        totalTiles: tiles.length,
-        completedTiles: completedTiles,
-      );
+    if (batch.isNotEmpty) {
+      await Future.wait(batch);
     }
   }
 
-  /// Convierte coordenadas geográficas a índices de tile
   static TileCoordinates latLngToTile(double lat, double lng, int zoom) {
     final n = 1 << zoom;
     final x = ((lng + 180.0) / 360.0 * n).floor();
@@ -132,6 +151,8 @@ Future<void> showPrecachingProgressDialog(
   BuildContext context,
   ValueNotifier<PrecachingStatus> notifier,
 ) async {
+  bool dialogClosed = false;
+
   return showDialog(
     context: context,
     barrierDismissible: false,
@@ -139,12 +160,15 @@ Future<void> showPrecachingProgressDialog(
       return ValueListenableBuilder<PrecachingStatus>(
         valueListenable: notifier,
         builder: (context, status, _) {
-          if (status.completedTiles >= status.totalTiles &&
+          if (!dialogClosed &&
+              status.completedTiles >= status.totalTiles &&
               status.totalTiles > 0) {
+            dialogClosed = true;
             Future.microtask(() {
               if (Navigator.canPop(context)) Navigator.of(context).pop();
             });
           }
+
           return AlertDialog(
             title: const Text('Descargando mapa'),
             content: Column(

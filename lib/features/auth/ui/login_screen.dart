@@ -64,14 +64,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             );
 
         await showPrecachingProgressDialog(context, progressNotifier);
+        await precacheFuture;
 
-        await precacheFuture; // terminar precache
-        if (mounted) Navigator.pop(context);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Mapa sin conexion disponible'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+
         await prefs.setBool('campus_tiles_cached', true);
       }
 
-      if (mounted) {
-        print('Login successful');
+      if (context.mounted) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.mainapp);
       }
     } catch (e) {
