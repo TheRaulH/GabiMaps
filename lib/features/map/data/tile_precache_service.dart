@@ -7,7 +7,7 @@ import 'package:gabimaps/features/map/data/tile_cache_service.dart';
 import 'package:flutter/material.dart';
 
 class TilePrecacheService {
-  static const List<int> zoomLevels = [17, 18, 19];
+  static const List<int> zoomLevels = [17, 18, 19, 20];
 
   static Future<void> precacheCampusTilesWithProgress(
     ValueNotifier<PrecachingStatus> notifier,
