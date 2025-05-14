@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; 
-import 'package:gabimaps/features/home/ui/red_social.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/features/home/ui/saved.dart';
 import 'package:gabimaps/features/map/ui/map_screen.dart';
 import 'package:gabimaps/app/core/size_config.dart';
+import 'package:gabimaps/features/posts/ui/posts_page.dart';
 import 'package:gabimaps/features/user/ui/profile_screen.dart';
 
 // Proveedor para el modo de tema
@@ -36,7 +36,7 @@ class _MainAppState extends ConsumerState<MainApp> with WidgetsBindingObserver {
   final List<Widget> screens = [
     MapScreen(),
     GuardadosPage(),
-    RedSocialUAGRM(),
+    PostsPage(),
     ProfileScreen(),
   ];
 
