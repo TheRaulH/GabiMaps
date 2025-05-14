@@ -56,7 +56,7 @@ class UsersRepository {
         await _firestore
             .collection('users')
             .where('nombre', isGreaterThanOrEqualTo: query)
-            .where('nombre', isLessThan: query + 'z')
+            .where('nombre', isLessThan: '${query}z')
             .get();
 
     return snapshot.docs
