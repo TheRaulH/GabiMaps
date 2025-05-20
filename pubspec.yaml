@@ -49,6 +49,15 @@ dependencies:
   rive: ^0.13.20
   uuid: ^4.5.1
 
+  flutter_map_cache: ^2.0.0+1
+  http_cache_core: ^1.0.1
+  http_cache_hive_store: ^5.0.1
+  hive: ^2.0.0
+  hive_flutter: ^1.1.0
+  dio: ^5.3.3 
+
+  shared_preferences: ^2.2.2
+
 dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_test:

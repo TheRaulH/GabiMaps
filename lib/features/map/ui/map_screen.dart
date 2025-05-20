@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/features/map/providers/location_provider.dart';
 import 'package:gabimaps/features/map/ui/widgets/location_details_widget.dart';
 import 'package:gabimaps/features/map/ui/widgets/map_controls_widget.dart';
@@ -8,11 +8,10 @@ import 'package:gabimaps/features/map/ui/widgets/map_markers_widget.dart';
 import 'package:gabimaps/features/map/ui/widgets/search_filter_widget.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:geolocator/geolocator.dart'; 
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map_cache/flutter_map_cache.dart';
+import 'package:gabimaps/features/map/providers/cache_provider.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-
-
-
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -33,7 +32,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   StreamSubscription<MapEvent>? _mapEventSubscription;
   final ValueNotifier<double> _zoomNotifier = ValueNotifier(14.0);
   LatLng? _currentPosition;
-  double _currentZoom = 16.0;
+  double _currentZoom = 17.0;
   //bool _trackingLocation = false; // Nuevo estado para seguimiento
   //late StreamController<Position> _positionStreamController;
   //StreamSubscription<Position>? _positionSubscription;
@@ -42,11 +41,15 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   Timer? _debounce;
 
+  static const minLat = -17.779817462275247;
+  static const maxLat = -17.772732948991735;
+  static const minLng = -63.198970197924325;
+  static const maxLng = -63.19011474035158;
 
   // Constants
   static const LatLng _initialPosition = LatLng(
-    -17.777438043503892,
-    -63.190263743504275,
+    -17.77523823913366,
+    -63.195728548113955,
   );
 
   static const Map<String, LatLng> _predefinedLocations = {
@@ -58,7 +61,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   @override
   void initState() {
     super.initState();
- 
+
     _initializeData();
     _setupListeners();
 
@@ -104,7 +107,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
       // do something with query
       ref.read(locationSearchProvider.notifier).state = _searchController.text;
     });
-    
   }
 
   Future<void> _getCurrentLocation() async {
@@ -138,18 +140,24 @@ class _MapScreenState extends ConsumerState<MapScreen>
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      if (mounted) {
-        setState(() {
-          _currentPosition = LatLng(position.latitude, position.longitude);
-        });
-        _mapController.move(_currentPosition!, _currentZoom);
+      final lat = position.latitude;
+      final lng = position.longitude;
+
+      // Check if within bounds
+      if (lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng) {
+        if (mounted) {
+          setState(() {
+            _currentPosition = LatLng(lat, lng);
+          });
+          _mapController.move(_currentPosition!, _currentZoom);
+        }
+      } else {
+        _showErrorMessage('No estas en la gabi.');
       }
     } catch (e) {
       _showErrorMessage('Error al obtener la ubicación: $e');
     }
   }
-
- 
 
   void _showErrorMessage(String message) {
     if (mounted) {
@@ -235,7 +243,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         (entry) => ListTile(
                           title: Text(entry.key),
                           onTap: () {
-                            _mapController.move(entry.value, 16.0);
+                            _mapController.move(entry.value, 17.0);
                             Navigator.pop(context);
                           },
                         ),
@@ -258,32 +266,85 @@ class _MapScreenState extends ConsumerState<MapScreen>
             FlutterMap(
               mapController: _mapController,
               options: MapOptions(
-                initialCenter: _currentPosition ?? _initialPosition,
+                keepAlive: true,
+                interactionOptions: const InteractionOptions(
+                  enableMultiFingerGestureRace: true,
+                  flags: ~InteractiveFlag.rotate,
+                ),
+                initialCenter: /*_currentPosition ??*/ _initialPosition,
                 initialZoom: _currentZoom,
-                minZoom: 3,
+                minZoom: 17,
                 maxZoom: 20,
-                onPositionChanged: (position, hasGesture) {
+                cameraConstraint: CameraConstraint.contain(
+                  bounds: LatLngBounds(
+                    const LatLng(minLat, minLng), // suroeste (minLat, minLng)
+                    const LatLng(maxLat, maxLng), // noreste (maxLat, maxLng)
+                  ),
+                ),
+                /*  onPositionChanged: (position, hasGesture) {
                   if (mounted) {
                     _currentPosition = position.center;
                     _currentZoom = position.zoom;
                     _zoomNotifier.value = _currentZoom;
                   }
-                },
+                },*/
               ),
-              children: [
 
-                if (isDarkMode)
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    tileBuilder: _darkModeTileBuilder,
-                  )
-                else
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.app',
-                  ),
+              children: [
+                Consumer(
+                  builder: (context, ref, _) {
+                    final asyncStore = ref.watch(tileCacheProvider);
+                    return asyncStore.when(
+                      data: (store) {
+                        return isDarkMode
+                            ? TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              tileProvider: CachedTileProvider(
+                                store: store,
+                                maxStale: const Duration(days: 365),
+                              ),
+                              tileBuilder: _darkModeTileBuilder,
+                              userAgentPackageName: 'com.example.app',
+                            )
+                            : TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              tileProvider: CachedTileProvider(
+                                store: store,
+                                maxStale: const Duration(days: 365),
+                              ),
+                              userAgentPackageName: 'com.example.app',
+                            );
+                      },
+                      loading:
+                          () =>
+                              const SizedBox(), // o CircularProgressIndicator()
+                      error:
+                          (err, _) => Center(
+                            child: Text('Error al cargar caché: $err'),
+                          ),
+                    );
+                  },
+                ),
+                /*  
+                Para dibujar el area especifica de la gabriel
+                   PolygonLayer(
+                  polygons: [
+                    Polygon(
+                      points: [
+                        LatLng(minLat, minLng), // Suroeste
+                        LatLng(minLat, maxLng), // Sureste
+                        LatLng(maxLat, maxLng), // Noreste
+                        LatLng(maxLat, minLng), // Noroeste
+                      ],
+                      color: Colors.blue.withOpacity(0.2),
+                      borderStrokeWidth: 2,
+                      borderColor: Colors.blueAccent,
+                    ),
+                  ],
+                ), */
+
                 // Capa base (siempre presente)
 
                 // TileLayer(
@@ -322,7 +383,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       showAccuracyCircle: true,
                     ),
                     alignPositionOnUpdate:
-                        AlignOnUpdate.always, // Opcional: sigue la ubicación
+                        AlignOnUpdate
+                            .never, // debe estar en never para que no mueva el mapa al iniciar la app
                   ),
 
                 MapMarkersWidget(
