@@ -9,6 +9,8 @@ class PostCard extends ConsumerWidget {
   final bool showActions;
   final bool isInThread;
   final VoidCallback? onTap;
+  final String? heroTag;
+
 
   const PostCard({
     Key? key,
@@ -16,6 +18,8 @@ class PostCard extends ConsumerWidget {
     this.showActions = true,
     this.isInThread = false,
     this.onTap,
+    this.heroTag,
+
   }) : super(key: key);
 
   @override
@@ -124,20 +128,41 @@ class PostCard extends ConsumerWidget {
                   padding: const EdgeInsets.only(top: 8),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      post.mediaUrls!.first,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder:
-                          (context, error, stackTrace) => Container(
-                            height: 120,
-                            color: Colors.grey.shade300,
-                            child: const Center(
-                              child: Icon(Icons.image_not_supported),
+                     
+                    child:
+                        heroTag != null
+                            ? Hero(
+                              tag: heroTag!,
+                              child: Image.network(
+                                post.mediaUrls!.first,
+                                height: 200,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (context, error, stackTrace) => Container(
+                                      height: 120,
+                                      color: Colors.grey.shade300,
+                                      child: const Center(
+                                        child: Icon(Icons.image_not_supported),
+                                      ),
+                                    ),
+                              ),
+                            )
+                            : Image.network(
+                              post.mediaUrls!.first,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) => Container(
+                                    height: 120,
+                                    color: Colors.grey.shade300,
+                                    child: const Center(
+                                      child: Icon(Icons.image_not_supported),
+                                    ),
+                                  ),
                             ),
-                          ),
-                    ),
+                    
                   ),
                 ),
 

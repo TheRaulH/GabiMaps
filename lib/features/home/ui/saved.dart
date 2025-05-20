@@ -33,7 +33,7 @@ class LugarGuardado {
 class GuardadosPage extends StatelessWidget {
   final List<LugarGuardado> lugaresGuardados = [
     LugarGuardado(
-      nombre: 'Facultad de Ciencias Exactas',
+      nombre: 'Facultad de Ciencias e',
       tipo: 'Facultad',
       imagenUrl:
           'https://i0.wp.com/monteronoticias.com/wp-content/uploads/2021/01/finor.jpg',
@@ -66,7 +66,7 @@ class GuardadosPage extends StatelessWidget {
       backgroundColor: Colors.indigo,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Negocios UAGRM'),
+        title: Text('Negocioss UAGRM'),
         centerTitle: false,
       ),
       body:  ListView(

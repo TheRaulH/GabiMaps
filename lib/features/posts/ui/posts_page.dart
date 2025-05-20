@@ -63,6 +63,8 @@ class PostsPage extends ConsumerWidget{
                     final post = posts[index];
                     return PostCard(
                       post: post,
+                      heroTag: 'postHero_${post.postId}',
+
                       onTap:
                           () => Navigator.push(
                             context,
@@ -81,13 +83,7 @@ class PostsPage extends ConsumerWidget{
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(context: context, builder: (_) => const NewPostForm());
-        },
-        child: const Icon(Icons.add),
-        tooltip: 'Nueva publicación',
-      ),
+       
     );
   }
 }

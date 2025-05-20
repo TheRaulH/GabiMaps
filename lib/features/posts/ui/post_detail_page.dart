@@ -28,7 +28,7 @@ class PostDetailPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PostCard(post: post),
+                PostCard(post: post, heroTag: 'postHero_${post.postId}'),
                 const SizedBox(height: 16),
                 Text(
                   'Comentarios',

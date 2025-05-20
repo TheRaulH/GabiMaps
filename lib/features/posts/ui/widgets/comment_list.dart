@@ -38,7 +38,11 @@ class CommentList extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Comment card
-                PostCard(post: comment, isInThread: true),
+                PostCard(
+                  post: comment,
+                  isInThread: true,
+                  heroTag: 'commentHero_${comment.postId}',
+                ),
 
                 // Replies section
                 if (comment.commentsCount > 0)
