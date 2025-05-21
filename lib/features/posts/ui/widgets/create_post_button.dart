@@ -1,45 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/features/posts/data/post_model.dart';
-import 'package:gabimaps/features/posts/provider/posts_provider.dart';  
+import 'package:gabimaps/features/posts/provider/posts_provider.dart';
 
 class CreatePostButton extends StatelessWidget {
   final bool isOfficial;
+  final Color? iconColor;
 
-  const CreatePostButton({super.key, this.isOfficial = false});
+  const CreatePostButton({super.key, this.isOfficial = false, this.iconColor});
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    return IconButton(
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color:
+              isOfficial
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.secondary,
+          shape: BoxShape.circle,
+          boxShadow: [
+            if (!isDarkMode)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+          ],
+        ),
+        child: Icon(
+          Icons.add,
+          color: iconColor ?? theme.colorScheme.onPrimary,
+          size: 24,
+        ),
+      ),
+      tooltip: 'Crear publicación',
       onPressed: () => _showPostTypeDialog(context),
-      child: const Icon(Icons.add),
     );
   }
 
   void _showPostTypeDialog(BuildContext context) {
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Crear nueva publicación'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children:
-                  PostType.values
-                      .where(
-                        (type) => type != PostType.comment,
-                      ) // Excluimos comentarios
-                      .map(
-                        (type) => ListTile(
-                          leading: Icon(_getIconForType(type)),
-                          title: Text(type.displayName),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _showPostForm(context, type);
-                          },
-                        ),
-                      )
-                      .toList(),
+            title: Text(
+              'Crear nueva publicación',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView(
+                shrinkWrap: true,
+                children:
+                    PostType.values
+                        .where((type) => type != PostType.comment)
+                        .map(
+                          (type) => Card(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(
+                                color: theme.dividerColor.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary.withOpacity(
+                                    0.1,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  _getIconForType(type),
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                              title: Text(
+                                type.displayName,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showPostForm(context, type);
+                              },
+                            ),
+                          ),
+                        )
+                        .toList(),
+              ),
             ),
           ),
     );
@@ -49,8 +113,15 @@ class CreatePostButton extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder:
-          (context) => Padding(
+          (context) => Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.background,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
@@ -112,6 +183,18 @@ class _PostFormContentState extends ConsumerState<_PostFormContent> {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
+      builder:
+          (context, child) => Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.light(
+                primary: Theme.of(context).colorScheme.primary,
+                onPrimary: Theme.of(context).colorScheme.onPrimary,
+                surface: Theme.of(context).colorScheme.surface,
+                onSurface: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            child: child!,
+          ),
     );
 
     if (picked != null) {
@@ -157,9 +240,15 @@ class _PostFormContentState extends ConsumerState<_PostFormContent> {
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al publicar: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al publicar: $e'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
       }
     }
   }
@@ -167,7 +256,10 @@ class _PostFormContentState extends ConsumerState<_PostFormContent> {
   Widget _buildTitleField(String label) {
     return TextFormField(
       controller: _titleController,
-      decoration: InputDecoration(labelText: label),
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
       validator: (value) => value == null || value.isEmpty ? 'Requerido' : null,
     );
   }
@@ -177,9 +269,12 @@ class _PostFormContentState extends ConsumerState<_PostFormContent> {
       controller: _dateController,
       decoration: InputDecoration(
         labelText: label,
-        suffixIcon: Icon(Icons.calendar_today),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.calendar_today),
+          onPressed: () => _selectDate(context),
+        ),
       ),
-      onTap: () => _selectDate(context),
       readOnly: true,
       validator:
           widget.type == PostType.event || widget.type == PostType.scholarship
@@ -191,12 +286,17 @@ class _PostFormContentState extends ConsumerState<_PostFormContent> {
   Widget _buildLocationField(String label) {
     return TextFormField(
       controller: _locationController,
-      decoration: InputDecoration(labelText: label),
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     String titleLabel;
     String? dateLabel;
     String? locationLabel;
@@ -234,9 +334,20 @@ class _PostFormContentState extends ConsumerState<_PostFormContent> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Nuevo ${widget.type.displayName}',
-              style: Theme.of(context).textTheme.headlineSmall,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Nuevo ${widget.type.displayName}',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 
@@ -260,19 +371,36 @@ class _PostFormContentState extends ConsumerState<_PostFormContent> {
                       .map(
                         (visibility) => DropdownMenuItem(
                           value: visibility,
-                          child: Text(visibility.toString().split('.').last),
+                          child: Text(
+                            visibility.toString().split('.').last,
+                            style: theme.textTheme.bodyMedium,
+                          ),
                         ),
                       )
                       .toList(),
               onChanged:
                   (visibility) => setState(() => _visibility = visibility!),
-              decoration: const InputDecoration(labelText: 'Visibilidad'),
+              decoration: InputDecoration(
+                labelText: 'Visibilidad',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              style: theme.textTheme.bodyMedium,
+              dropdownColor: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(10),
             ),
             const SizedBox(height: 16),
 
             TextFormField(
               controller: _contentController,
-              decoration: const InputDecoration(labelText: 'Contenido'),
+              decoration: InputDecoration(
+                labelText: 'Contenido',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignLabelWithHint: true,
+              ),
               maxLines: 4,
               validator:
                   (value) =>
@@ -280,7 +408,17 @@ class _PostFormContentState extends ConsumerState<_PostFormContent> {
             ),
             const SizedBox(height: 24),
 
-            ElevatedButton(onPressed: _submit, child: const Text('Publicar')),
+            ElevatedButton(
+              onPressed: _submit,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Publicar'),
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
