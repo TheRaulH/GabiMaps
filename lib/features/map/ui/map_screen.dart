@@ -32,7 +32,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   StreamSubscription<MapEvent>? _mapEventSubscription;
   final ValueNotifier<double> _zoomNotifier = ValueNotifier(14.0);
   LatLng? _currentPosition;
-  double _currentZoom = 17.0;
+  double _currentZoom = 18.0;
   //bool _trackingLocation = false; // Nuevo estado para seguimiento
   //late StreamController<Position> _positionStreamController;
   //StreamSubscription<Position>? _positionSubscription;
@@ -384,7 +384,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     ),
                     alignPositionOnUpdate:
                         AlignOnUpdate
-                            .never, // debe estar en never para que no mueva el mapa al iniciar la app
+                            .once, // debe estar en never para que no mueva el mapa al iniciar la app
                   ),
 
                 MapMarkersWidget(
