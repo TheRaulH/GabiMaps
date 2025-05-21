@@ -22,19 +22,22 @@ final locationListProvider = StateProvider<List<LocationPlace>>((ref) {
     LocationPlace(
       name: 'Modulo 1',
       description: 'Primer Módulo Universitario',
-      imageUrl: 'assets/images/modulo1.jpg',
+      imageUrl:
+          'https://i0.wp.com/monteronoticias.com/wp-content/uploads/2021/01/finor.jpg',
       rating: 5.0,
     ),
     LocationPlace(
       name: 'Biblioteca Central',
       description: 'Biblioteca Principal',
-      imageUrl: 'assets/images/biblioteca.jpg',
+      imageUrl:
+          'https://www.comunidadbaratz.com/wp-content/uploads/Existe-una-gran-variedad-de-tipologias-de-bibliotecas.jpg',
       rating: 4.5,
     ),
     LocationPlace(
       name: 'Cafetería',
       description: 'Cafetería Principal',
-      imageUrl: 'assets/images/cafeteria.jpg',
+      imageUrl:
+          'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/28/cf/da/28/encuentranos-en-la-calle.jpg',
       rating: 4.0,
     ),
   ];
