@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gabimaps/features/user/data/user_model.dart';
+import 'package:gabimaps/features/user/providers/user_providers.dart';
 import '../../data/post_model.dart';
 import '../../provider/posts_provider.dart';
 import 'reaction_buttons.dart';
+
+final userDataProvider = FutureProvider.family<UserModel, String>((
+  ref,
+  userId,
+) async {
+  final userRepository = ref.read(userRepositoryProvider);
+  return await userRepository.getUser(userId);
+});
 
 class PostCard extends ConsumerWidget {
   final Post post;
@@ -10,6 +20,7 @@ class PostCard extends ConsumerWidget {
   final bool isInThread;
   final VoidCallback? onTap;
   final String? heroTag;
+
 
 
   const PostCard({
@@ -26,6 +37,8 @@ class PostCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final postsNotifier = ref.read(postsNotifierProvider.notifier);
     final theme = Theme.of(context);
+    final userAsync = ref.watch(userDataProvider(post.userId));
+
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -40,7 +53,25 @@ class PostCard extends ConsumerWidget {
               Row(
                 children: [
                   // User avatar placeholder
-                  const CircleAvatar(child: Icon(Icons.person)),
+                  // User avatar
+                  userAsync.when(
+                    loading:
+                        () => const CircleAvatar(
+                          child: CircularProgressIndicator(),
+                        ),
+                    error:
+                        (error, stack) =>
+                            const CircleAvatar(child: Icon(Icons.error)),
+                    data:
+                        (user) => CircleAvatar(
+                          backgroundImage:
+                              user.photoURL != null
+                                  ? NetworkImage(user.photoURL!)
+                                  : const AssetImage(
+                                    'assets/images/default_avatar.jpg',
+                                  ),
+                        ),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -48,11 +79,29 @@ class PostCard extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              'Usuario ${post.userId.substring(0, 4)}',
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            userAsync.when(
+                              loading:
+                                  () => Text(
+                                    'Cargando...',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                              error:
+                                  (error, stack) => Text(
+                                    'Usuario ${post.userId.substring(0, 4)}',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                              data:
+                                  (user) => Text(
+                                    user.nombre ??
+                                        'Usuario ${post.userId.substring(0, 4)}',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                             ),
                             if (post.isOfficial)
                               Padding(
