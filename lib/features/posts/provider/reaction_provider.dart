@@ -30,8 +30,11 @@ final userDislikedPostProvider = FutureProvider.autoDispose
 /// StateNotifier para gestionar las reacciones a posts
 class ReactionNotifier extends StateNotifier<AsyncValue<void>> {
   final PostsRepository _repository;
+  final Ref ref; // <-- Añade esto
 
-  ReactionNotifier(this._repository) : super(const AsyncValue.data(null));
+
+  ReactionNotifier(this._repository, this.ref)
+    : super(const AsyncValue.data(null));
 
   /// Agrega o cambia una reacción a un post
   Future<void> toggleReaction({
@@ -41,6 +44,16 @@ class ReactionNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _repository.addReaction(postId: postId, type: type);
+
+      // 🚨 Fuerza recarga de los datos de reacción del usuario
+      ref.invalidate(userReactionProvider(postId));
+      ref.invalidate(userLikedPostProvider(postId));
+      ref.invalidate(userDislikedPostProvider(postId));
+      ref.invalidate(postByIdProvider(postId));
+
+      // 🚨 También podrías querer recargar el post (para likes/dislikesCount actualizados)
+      ref.invalidate(postByIdProvider(postId));
+
       state = const AsyncValue.data(null);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
@@ -62,7 +75,7 @@ class ReactionNotifier extends StateNotifier<AsyncValue<void>> {
 final reactionNotifierProvider =
     StateNotifierProvider<ReactionNotifier, AsyncValue<void>>((ref) {
       final repository = ref.watch(postsRepositoryProvider);
-      return ReactionNotifier(repository);
+      return ReactionNotifier(repository, ref); // <-- aquí va el ref
     });
 
 /// Provider para post populares (más likes)
