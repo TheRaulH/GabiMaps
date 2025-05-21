@@ -228,23 +228,35 @@ class _UserAdminScreenState extends ConsumerState<UserAdminScreen>
               borderRadius: BorderRadius.circular(12.0),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(
+                5.0,
+              ), // Increased padding for better aesthetics and to prevent overflow
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   
                   const SizedBox(height: 12),
                   Text('Fecha de registro:', style: theme.textTheme.labelLarge),
                   const SizedBox(height: 4),
-                  Text(
-                    _editableUser.fechaRegistro?.toString() ??
-                        'No disponible',
-                    style: theme.textTheme.bodyMedium,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _editableUser.fechaRegistro?.toString() ??
+                              'No disponible',
+                          style: theme.textTheme.bodyMedium,
+                          overflow:
+                              TextOverflow
+                                  .ellipsis, // Optional: handle very long dates by adding ellipsis
+                          maxLines:
+                              2, // Optional: allow the text to wrap to a maximum of 2 lines
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
+          )
         ],
       ),
     );
@@ -389,69 +401,7 @@ class _UserAdminScreenState extends ConsumerState<UserAdminScreen>
                     );
                   },
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: Icon(Icons.block, color: colorScheme.error),
-                  title: const Text('Suspender cuenta'),
-                  subtitle: Text(
-                    _editableUser.isActive == false
-                        ? 'La cuenta ya está suspendida'
-                        : 'Impedir temporalmente el acceso del usuario',
-                  ),
-                  trailing: Switch(
-                    value: _editableUser.isActive != false,
-                    activeColor: colorScheme.primary,
-                    onChanged:
-                        _isEditing
-                            ? (value) {
-                              // Implementar lógica para suspender/activar cuenta
-                            }
-                            : null,
-                  ),
-                ), 
-                const Divider(height: 1),
-                ListTile(
-                  leading: Icon(Icons.delete_outline, color: colorScheme.error),
-                  title: const Text('Eliminar cuenta'),
-                  subtitle: const Text('Esta acción no se puede deshacer'),
-                  onTap:
-                      _isEditing
-                          ? () {
-                            // Mostrar diálogo de confirmación
-                            showDialog(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: const Text('Eliminar cuenta'),
-                                    content: const Text(
-                                      '¿Estás seguro de eliminar esta cuenta? Esta acción no se puede deshacer.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text('Cancelar'),
-                                        onPressed:
-                                            () => Navigator.of(context).pop(),
-                                      ),
-                                      TextButton(
-                                        child: Text(
-                                          'Eliminar',
-                                          style: TextStyle(
-                                            color: colorScheme.error,
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          // Implementar lógica para eliminar cuenta
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                            );
-                          }
-                          : null,
-                  enabled: _isEditing,
-                ),
+                
               ],
             ),
           ),
