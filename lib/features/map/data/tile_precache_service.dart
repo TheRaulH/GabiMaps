@@ -15,10 +15,10 @@ class TilePrecacheService {
     final dio = Dio();
     final store = await TileCacheService.createStore();
 
-    const minLat = -17.779817462275247;
-    const maxLat = -17.772873585563268;
-    const minLng = -63.198970197924325;
-    const maxLng = -63.19049146213652;
+    const minLat = -17.780219696990024;
+    const maxLat = -17.771822507355445;
+    const minLng = -63.1994856171543;
+    const maxLng = -63.19010511123978;
 
     final tiles = <Map<String, dynamic>>[];
 

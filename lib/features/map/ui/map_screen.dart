@@ -41,22 +41,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   Timer? _debounce;
 
-  static const minLat = -17.779817462275247;
-  static const maxLat = -17.772732948991735;
-  static const minLng = -63.198970197924325;
-  static const maxLng = -63.19011474035158;
+  static const minLat = -17.780219696990024;
+  static const maxLat = -17.771822507355445;
+  static const minLng = -63.1994856171543;
+  static const maxLng = -63.19010511123978;
 
   // Constants
   static const LatLng _initialPosition = LatLng(
     -17.77523823913366,
     -63.195728548113955,
   );
-
-  static const Map<String, LatLng> _predefinedLocations = {
-    'Campus Central': LatLng(-17.775672, -63.197941),
-    'Dormitorios': LatLng(-17.774300, -63.209315),
-    'Campus Norte': LatLng(-17.769092, -63.191998),
-  };
 
   @override
   void initState() {
@@ -229,7 +223,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     });
   }
 
-  void _showLocationSelectionDialog() {
+  /*  void _showLocationSelectionDialog() {
     showDialog(
       context: context,
       builder:
@@ -252,7 +246,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
             ),
           ),
     );
-  }
+  } */
 
   Widget _buildMapView() {
     return ValueListenableBuilder<double>(
@@ -490,7 +484,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 onFilterToggled: _toggleFilter,
                 onSearchSubmitted:
                     () => _searchLocation(_searchController.text),
-                onMenuPressed: _showLocationSelectionDialog,
               ),
             ),
           ],

@@ -8,7 +8,6 @@ class SearchAndFilterWidget extends ConsumerWidget {
   final Function(String) onSearchChanged;
   final Function(String) onFilterToggled;
   final Function() onSearchSubmitted;
-  final Function() onMenuPressed;
 
   const SearchAndFilterWidget({
     super.key,
@@ -16,7 +15,6 @@ class SearchAndFilterWidget extends ConsumerWidget {
     required this.onSearchChanged,
     required this.onFilterToggled,
     required this.onSearchSubmitted,
-    required this.onMenuPressed,
   });
 
   @override
@@ -30,13 +28,12 @@ class SearchAndFilterWidget extends ConsumerWidget {
     return Column(
       children: [
         // Barra de búsqueda y botón de perfil
-        
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
             children: [
               Expanded(
-                child: Container( 
+                child: Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(28),
@@ -75,6 +72,9 @@ class SearchAndFilterWidget extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.primaryContainer,
                   shape: BoxShape.circle,
                 ),
+                /*    
+                Podria usarse para otros propositos 
+                
                 child: IconButton(
                   icon: Icon(
                     Icons.view_list_rounded,
@@ -82,7 +82,7 @@ class SearchAndFilterWidget extends ConsumerWidget {
                   ),
                   onPressed: onMenuPressed,
                   tooltip: 'Menú',
-                ),
+                ),*/
               ),
             ],
           ),
@@ -105,8 +105,7 @@ class SearchAndFilterWidget extends ConsumerWidget {
                   label: Text(filter),
                   selected: isSelected,
                   onSelected: (_) => onFilterToggled(filter),
-                  backgroundColor:
-                      Theme.of(context).colorScheme.surface,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
                   selectedColor:
                       Theme.of(context).colorScheme.secondaryContainer,
                   labelStyle: TextStyle(
