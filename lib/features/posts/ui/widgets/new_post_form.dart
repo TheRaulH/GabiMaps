@@ -256,8 +256,9 @@ class _NewPostFormState extends ConsumerState<NewPostForm> {
   }
 
   Widget _buildTypeSpecificFields() {
-    if (widget.parentId != null)
+    if (widget.parentId != null) {
       return const SizedBox(); // No mostrar para comentarios/respuestas
+    }
 
     switch (_selectedType) {
       case PostType.event:

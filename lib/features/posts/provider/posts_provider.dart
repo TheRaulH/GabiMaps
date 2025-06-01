@@ -219,7 +219,7 @@ final loadMorePostsProvider = FutureProvider.autoDispose<void>((ref) async {
     final postsAsync = ref.watch(mainPostsProvider(pageState.lastDocument));
 
     // Esperar a que se resuelva la operación
-    await postsAsync.whenData((posts) {
+    postsAsync.whenData((posts) {
       // Actualizar el estado de paginación
       if (posts.isEmpty || posts.length < 20) {
         // 20 es el límite por defecto
@@ -251,7 +251,7 @@ final loadMorePostsProvider = FutureProvider.autoDispose<void>((ref) async {
       hasMore: true,
       lastDocument: pageState.lastDocument,
     );
-    throw e;
+    rethrow;
   }
 });
 

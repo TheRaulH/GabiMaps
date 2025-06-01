@@ -24,14 +24,14 @@ class PostCard extends ConsumerWidget {
 
 
   const PostCard({
-    Key? key,
+    super.key,
     required this.post,
     this.showActions = true,
     this.isInThread = false,
     this.onTap,
     this.heroTag,
 
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

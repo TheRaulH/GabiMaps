@@ -7,7 +7,7 @@ import 'post_card.dart';
 class CommentList extends ConsumerWidget {
   final String postId;
 
-  const CommentList({Key? key, required this.postId}) : super(key: key);
+  const CommentList({super.key, required this.postId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,7 +96,7 @@ class CommentList extends ConsumerWidget {
 class _RepliesList extends ConsumerWidget {
   final String commentId;
 
-  const _RepliesList({Key? key, required this.commentId}) : super(key: key);
+  const _RepliesList({required this.commentId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -138,7 +138,7 @@ class _RepliesList extends ConsumerWidget {
 class _ReplyForm extends ConsumerStatefulWidget {
   final String parentCommentId;
 
-  const _ReplyForm({Key? key, required this.parentCommentId}) : super(key: key);
+  const _ReplyForm({required this.parentCommentId});
 
   @override
   _ReplyFormState createState() => _ReplyFormState();

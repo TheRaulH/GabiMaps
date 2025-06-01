@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/reaction_model.dart';
 import '../../provider/reaction_provider.dart';
 
 class ReactionButtons extends ConsumerStatefulWidget {
   final String postId;
 
-  const ReactionButtons({Key? key, required this.postId}) : super(key: key);
+  const ReactionButtons({super.key, required this.postId});
 
   @override
   ConsumerState<ReactionButtons> createState() => _ReactionButtonsState();

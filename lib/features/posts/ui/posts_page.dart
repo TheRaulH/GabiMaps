@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gabimaps/features/auth/providers/auth_providers.dart';
 import 'package:gabimaps/features/posts/ui/my_posts_page.dart';
 import 'package:gabimaps/features/posts/ui/widgets/create_post_button.dart';
 import 'package:gabimaps/features/user/providers/user_providers.dart';
 import '../../posts/data/post_model.dart';
 import '../provider/posts_provider.dart';
 import 'post_detail_page.dart';
-import 'widgets/new_post_form.dart';
 import 'widgets/post_card.dart';
 
 class PostsPage extends ConsumerWidget {
@@ -58,7 +56,7 @@ class PostsPage extends ConsumerWidget {
                   color:
                       isDarkMode
                           ? theme.colorScheme.onSurface
-                          : theme.colorScheme.onBackground,
+                          : theme.colorScheme.onSurface,
                 ),
               ),
             ],
@@ -286,7 +284,7 @@ class _FiltersRow extends StatelessWidget {
                 dropdownColor:
                     isDarkMode
                         ? theme.colorScheme.surface
-                        : theme.colorScheme.background,
+                        : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 onChanged: onTypeChanged,
                 items: [
@@ -350,7 +348,7 @@ class _FiltersRow extends StatelessWidget {
                 dropdownColor:
                     isDarkMode
                         ? theme.colorScheme.surface
-                        : theme.colorScheme.background,
+                        : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 onChanged: onVisibilityChanged,
                 items: [

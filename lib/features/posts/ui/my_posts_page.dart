@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:gabimaps/features/auth/providers/auth_providers.dart';
-import 'package:gabimaps/features/posts/data/post_model.dart';
 import 'package:gabimaps/features/posts/provider/posts_provider.dart';
 import 'package:gabimaps/features/posts/ui/post_detail_page.dart';
 import 'package:gabimaps/features/posts/ui/widgets/post_card.dart';
