@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gabimaps/features/business/data/business_model.dart';
+import 'package:gabimaps/features/business/providers/business_provider.dart';
 import 'package:gabimaps/features/home/widgets/category_marker_icon.dart';
 import 'package:gabimaps/features/map/providers/location_provider.dart';
 import 'package:latlong2/latlong.dart';
@@ -33,6 +35,9 @@ class MapMarkersWidget extends ConsumerWidget {
     final filteredLocations = ref.watch(filteredLocationsProvider);
     final selectedFilters = ref.watch(selectedCategoriesProvider);
 
+    final emprendimientosAsync = ref.watch(emprendimientosDisponiblesProvider);
+
+
     if (locationsState is! LocationsLoaded) {
       return const SizedBox.shrink();
     }
@@ -41,21 +46,47 @@ class MapMarkersWidget extends ConsumerWidget {
     final currentLayer = _getLayerForZoom(zoom);
     final hasCategoryFilter = selectedFilters.isNotEmpty;
 
-    final markers =
-        filteredLocations
-            .where(
-              (location) => _shouldShowLocation(
-                location,
-                currentLayer,
-                hasCategoryFilter,
-                selectedFilters,
-              ),
-            )
-            .map((location) => _buildMarker(context, location))
-            .toList();
+    final markers = <Marker>[
+      ...filteredLocations
+          .where(
+            (location) => _shouldShowLocation(
+              location,
+              currentLayer,
+              hasCategoryFilter,
+              selectedFilters,
+            ),
+          )
+          .map((location) => _buildMarker(context, location)),
+    ];
+
+    if (emprendimientosAsync is AsyncData<List>) {
+      final emprendimientos = emprendimientosAsync.value;
+      final emprendimientoMarkers =
+          emprendimientos
+              ?.where((e) => e.ubicacionActual != null)
+              .map((e) => _buildEmprendimientoMarker(context, e))
+              .toList();
+
+      markers.addAll(emprendimientoMarkers as Iterable<Marker>);
+    }
 
     return MarkerLayer(markers: markers);
   }
+
+  Marker _buildEmprendimientoMarker(BuildContext context, Emprendimiento e) {
+    final markerSize = _calculateMarkerSize();
+
+    return Marker(
+      point: LatLng(e.ubicacionActual!.latitude, e.ubicacionActual!.longitude),
+      width: markerSize,
+      height: markerSize,
+      child: GestureDetector(
+        onTap: () => onMarkerTap(context, e),
+        child: CategoryMarkerIcon(category: e.categoria, size: markerSize),
+      ),
+    );
+  }
+
 
   bool _shouldShowLocation(
     dynamic location,
