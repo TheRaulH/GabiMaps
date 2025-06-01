@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabimaps/features/home/ui/home_screen.dart';
-import 'package:gabimaps/features/home/ui/saved.dart';
 import 'package:gabimaps/features/map/ui/map_screen.dart';
 import 'package:gabimaps/app/core/size_config.dart';
 import 'package:gabimaps/features/posts/ui/posts_page.dart';
