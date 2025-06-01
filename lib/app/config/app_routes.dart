@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:gabimaps/features/auth/ui/login_screen.dart';
 import 'package:gabimaps/features/auth/ui/reset_password_screen.dart';
+import 'package:gabimaps/features/business/ui/business.dart'; 
 import 'package:gabimaps/features/home/ui/red_social.dart';
 import 'package:gabimaps/features/home/ui/saved.dart'; 
 import 'package:gabimaps/features/user/ui/profile_screen.dart'; 
@@ -26,6 +27,7 @@ class AppRoutes {
   static const String resetPassword = '/resetPassword'; 
   static const String locationsList = '/locations';
   static const String locationEdit = '/locations/edit';
+  static const String business = '/business';
 
   static Map<String, WidgetBuilder> routes = {
     splash: (context) => SplashScreen(),
@@ -38,6 +40,7 @@ class AppRoutes {
     location: (context) => LocationsManagementPage(),
     redsocial: (context) => UAGRMRedSocialApp(),
     saved: (context) => GuardadosPage(),
-    resetPassword: (context) => ResetPasswordScreen(), 
+    resetPassword: (context) => ResetPasswordScreen(),  
+    business: (context) => EmprendimientoScreen(),
   };
 }
