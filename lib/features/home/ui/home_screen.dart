@@ -47,7 +47,7 @@ final selectedCategoryProvider = StateProvider<String>((ref) => 'Modulos');
 
 // Main screen
 class LocationHomeScreen extends ConsumerWidget {
-  const LocationHomeScreen({Key? key}) : super(key: key);
+  const LocationHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
