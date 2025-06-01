@@ -13,6 +13,8 @@ class UserModel {
   final String? direccion;
   final String? photoURL;
   final bool? isActive;
+  final String? emprendimientoId; // ID del emprendimiento asociado
+
 
 
   UserModel({
@@ -28,6 +30,8 @@ class UserModel {
     this.direccion,
     this.photoURL,
     this.isActive = true,
+    this.emprendimientoId,
+
 
   });
 
@@ -49,6 +53,8 @@ class UserModel {
       direccion: data['direccion'],
       photoURL: data['photoURL'],
       isActive: data['isActive'] ?? true,
+      emprendimientoId: data['emprendimientoId'],
+
     );
   }
 
@@ -67,6 +73,8 @@ class UserModel {
       'direccion': direccion,
       'photoURL': photoURL,
       'isActive': isActive,
+      'emprendimientoId': emprendimientoId,
+
     };
   }
 
@@ -84,6 +92,7 @@ class UserModel {
     String? direccion,
     String? photoURL,
     bool? isActive,
+    String? emprendimientoId,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -98,6 +107,7 @@ class UserModel {
       direccion: direccion ?? this.direccion,
       photoURL: photoURL ?? this.photoURL,
       isActive: isActive ?? this.isActive,
+      emprendimientoId: emprendimientoId ?? this.emprendimientoId,
     );
   }
 }
