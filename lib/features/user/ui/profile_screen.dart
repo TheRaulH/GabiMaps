@@ -114,6 +114,15 @@ class ProfileScreen extends ConsumerWidget {
                       title: 'Ubicaciones',
                       onTap: () => _navigateToLocationsList(context),
                     ),
+                    //getion del emprendimiento del usuario
+                    _ProfileOption(
+                      icon: Icons.business,
+                      title: 'Mi Emprendimiento',
+                      onTap: () {
+                        // Implementar navegación a la pantalla de emprendimiento
+                        Navigator.pushNamed(context, AppRoutes.business);
+                      },
+                    ),
 
                     _ProfileOption(
                       icon: Icons.notifications,
